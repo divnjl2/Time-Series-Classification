@@ -3,35 +3,35 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from aeon.datasets import load_classification
-from aeon.classification.convolution_based import Arsenal
-from aeon.classification.convolution_based import RocketClassifier
-from aeon.classification.deep_learning.cnn import CNNClassifier
+#from aeon.classification.convolution_based import Arsenal
+#from aeon.classification.convolution_based import RocketClassifier
+#from aeon.classification.deep_learning.cnn import CNNClassifier
 #from aeon.classification.deep_learning.fcn import FCNClassifier
-from aeon.classification.deep_learning.mlp import MLPClassifier
-from aeon.classification.deep_learning import InceptionTimeClassifier
-from aeon.classification.deep_learning import IndividualInceptionClassifier
-from aeon.classification.deep_learning.tapnet import TapNetClassifier
-from aeon.classification.dictionary_based import BOSSEnsemble
-from aeon.classification.dictionary_based import ContractableBOSS
-from aeon.classification.dictionary_based import IndividualBOSS
-from aeon.classification.dictionary_based import MUSE
-from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
-from aeon.classification.dictionary_based import WEASEL
-from aeon.classification.dictionary_based import WEASEL_V2
-from aeon.classification.distance_based import ElasticEnsemble
+#from aeon.classification.deep_learning.mlp import MLPClassifier
+#from aeon.classification.deep_learning import InceptionTimeClassifier
+#from aeon.classification.deep_learning import IndividualInceptionClassifier
+#from aeon.classification.deep_learning.tapnet import TapNetClassifier
+#from aeon.classification.dictionary_based import BOSSEnsemble
+#from aeon.classification.dictionary_based import ContractableBOSS
+#from aeon.classification.dictionary_based import IndividualBOSS
+#from aeon.classification.dictionary_based import MUSE
+#from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
+#from aeon.classification.dictionary_based import WEASEL
+#from aeon.classification.dictionary_based import WEASEL_V2
+#from aeon.classification.distance_based import ElasticEnsemble
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.classification.distance_based import ShapeDTW
-from aeon.classification.feature_based import Catch22Classifier
-from aeon.classification.feature_based import MatrixProfileClassifier
-from aeon.classification.interval_based import CanonicalIntervalForestClassifier
-from aeon.classification.interval_based import DrCIFClassifier
-from aeon.classification.interval_based import SupervisedTimeSeriesForest
-from aeon.classification.interval_based import TimeSeriesForestClassifier
-from aeon.classification.interval_based import RandomIntervalClassifier
-from aeon.classification.shapelet_based import ShapeletTransformClassifier
-from aeon.classification.shapelet_based import RDSTClassifier
-from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.classification.sklearn import RotationForestClassifier
+#from aeon.classification.feature_based import Catch22Classifier
+#from aeon.classification.feature_based import MatrixProfileClassifier
+#from aeon.classification.interval_based import CanonicalIntervalForestClassifier
+#from aeon.classification.interval_based import DrCIFClassifier
+#from aeon.classification.interval_based import SupervisedTimeSeriesForest
+#from aeon.classification.interval_based import TimeSeriesForestClassifier
+#from aeon.classification.interval_based import RandomIntervalClassifier
+#from aeon.classification.shapelet_based import ShapeletTransformClassifier
+#from aeon.classification.shapelet_based import RDSTClassifier
+#from aeon.classification.sklearn import ContinuousIntervalTree
+#from aeon.classification.sklearn import RotationForestClassifier
 from keras_self_attention import SeqSelfAttention
 import tensorflow_probability as tfp
 import random
@@ -95,35 +95,35 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # Define a list of classifiers
 classifiers = [
-    Arsenal(),
-    RocketClassifier(),
-    CNNClassifier(),
+    #Arsenal(),
+    #RocketClassifier(),
+    #CNNClassifier(),
     #FCNClassifier(),
-    MLPClassifier(),
-    InceptionTimeClassifier(),
-    IndividualInceptionClassifier(),
-    TapNetClassifier(),
-    BOSSEnsemble(),
-    ContractableBOSS(),
-    IndividualBOSS(),
-    MUSE(),
-    TemporalDictionaryEnsemble(),
-    WEASEL(),
-    WEASEL_V2(),
-    ElasticEnsemble(),
+    #MLPClassifier(),
+    #InceptionTimeClassifier(),
+    #IndividualInceptionClassifier(),
+    #TapNetClassifier(),
+    #BOSSEnsemble(),
+    #ContractableBOSS(),
+    #IndividualBOSS(),
+    #MUSE(),
+    #TemporalDictionaryEnsemble(),
+    #WEASEL(),
+    #WEASEL_V2(),
+    #ElasticEnsemble(),
     KNeighborsTimeSeriesClassifier(),
     ShapeDTW(),
-    Catch22Classifier(),
-    MatrixProfileClassifier(),
-    CanonicalIntervalForestClassifier(),
-    DrCIFClassifier(),
-    SupervisedTimeSeriesForest(),
-    TimeSeriesForestClassifier(),
-    RandomIntervalClassifier(),
-    ShapeletTransformClassifier(),
-    RDSTClassifier(),
-    ContinuousIntervalTree(),
-    RotationForestClassifier(),
+    #Catch22Classifier(),
+    #MatrixProfileClassifier(),
+    #CanonicalIntervalForestClassifier(),
+    #DrCIFClassifier(),
+    #SupervisedTimeSeriesForest(),
+    #TimeSeriesForestClassifier(),
+    #RandomIntervalClassifier(),
+    #ShapeletTransformClassifier(),
+    #RDSTClassifier(),
+    #ContinuousIntervalTree(),
+    #RotationForestClassifier(),
 ]
 
 # Initialize lists to store classifier names, accuracies, and confusion matrices
