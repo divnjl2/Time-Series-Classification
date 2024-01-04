@@ -40,7 +40,7 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 # Load the dataset
-X, y = load_UCR_UEA_dataset("ElectricDevices")
+X, y = load_UCR_UEA_dataset("CricketX")
 
 # Extract features using tslearn
 X_processed = TimeSeriesScalerMinMax().fit_transform(to_time_series_dataset(X.iloc[:, 0]))
