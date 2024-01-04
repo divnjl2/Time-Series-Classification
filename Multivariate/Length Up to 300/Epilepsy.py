@@ -42,6 +42,12 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 # Load the dataset
 X, y = load_UCR_UEA_dataset("Epilepsy")
 
+# Print classes and number of samples
+unique_classes, class_counts = np.unique(y, return_counts=True)
+print("Classes and Number of Samples:")
+for class_label, count in zip(unique_classes, class_counts):
+    print(f"Class {class_label}: {count} samples")
+
 # Extract features using tslearn
 X_processed = TimeSeriesScalerMinMax().fit_transform(to_time_series_dataset(X.iloc[:, 0]))
 # Flatten each time series into a one-dimensional array

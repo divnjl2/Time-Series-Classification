@@ -40,7 +40,7 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 # Load the dataset
-X, y = load_UCR_UEA_dataset("ArrowHead")
+X, y = load_UCR_UEA_dataset("Computers")
 
 # Print classes and number of samples
 unique_classes, class_counts = np.unique(y, return_counts=True)
