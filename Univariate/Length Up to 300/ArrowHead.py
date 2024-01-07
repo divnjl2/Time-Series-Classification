@@ -1,9 +1,9 @@
+# Dataset: ArrowHead, Dimensions: 1, Length:	251, Train Size: 36, Test Size: 175, Classes: 3
+
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc
 from tslearn.preprocessing import TimeSeriesScalerMinMax
-from tslearn.utils import to_time_series_dataset
 from sktime.datasets import load_UCR_UEA_dataset
 from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
@@ -59,9 +59,6 @@ X_test_processed = scaler.transform(dataframe_to_2darray(X_test_raw))  # Use the
 # Flatten each time series into a one-dimensional array for classifiers that require flat features
 X_train_flat = X_train_processed.reshape((X_train_processed.shape[0], -1))
 X_test_flat = X_test_processed.reshape((X_test_processed.shape[0], -1))
-
-# ... [rest of your code]
-
 
 
 # Define a list of classifiers
@@ -146,6 +143,34 @@ for classifier in classifiers:
         tpr_dict[classifier_name] = tpr
         roc_auc_dict[classifier_name] = roc_auc
 
+# Function to plot ROC-AUC curves in separate subplots
+def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
+    num_classifiers = len(results["Classifier"])
+    num_cols = 3  # for a two-column layout
+    num_rows = np.ceil(num_classifiers / num_cols).astype(int)
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, num_rows * 5))
+
+    axes = axes.flatten()  # Flatten the axes array for easy indexing
+
+    for idx, classifier_name in enumerate(results["Classifier"]):
+        for i in range(n_classes):
+            axes[idx].plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], lw=2,
+                           label=f'ROC curve of class {i} (area = {roc_auc_dict[classifier_name][i]:.2f})')
+        axes[idx].plot([0, 1], [0, 1], 'k--', lw=2)
+        axes[idx].set_xlim([0.0, 1.0])
+        axes[idx].set_ylim([0.0, 1.05])
+        axes[idx].set_xlabel('False Positive Rate')
+        axes[idx].set_ylabel('True Positive Rate')
+        axes[idx].set_title(f'ROC-AUC for {classifier_name}')
+        axes[idx].legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.show()
+
+# Call the function to plot ROC-AUC curves
+plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)
+
+
 # Plotting ROC-AUC curves
 plt.figure(figsize=(15, 10))
 colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive'])
@@ -171,26 +196,42 @@ def plot_results(results, metric, title, color):
     plt.ylabel(metric)
     plt.title(title)
     plt.ylim(0, 1)
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90, ha='right')
+    plt.show()
+
+
+# Plotting results with modified x-axis labels and dynamic y-axis limit for execution time
+def plot_results_mod(results, metric, title, color, ylabel):
+    plt.figure(figsize=(10, 6))
+    plt.bar(results["Classifier"], results[metric], color=color)
+    plt.xlabel('Classifiers')
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.xticks(rotation=90, ha='right')  # This will prevent overlapping of names
+    if metric == "Execution Time":
+        max_execution_time = max(results[metric])
+        plt.ylim(0, max_execution_time * 1.1)  # Add 10% headroom
+    else:
+        plt.ylim(0, 1)
     plt.show()
 
 # Plotting results
 plot_results(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
 plot_results(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
-plot_results(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen")
+plot_results_mod(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen", "Time (s)")
 plot_results(results, "Precision", "Classifier Precision Comparison", "gold")
 plot_results(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
 
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
-num_cols = 5
+num_cols = 3
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
     plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix for {classifier_name}')
+    plt.title(f'Confusion M. for {classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')

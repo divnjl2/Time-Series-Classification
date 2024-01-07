@@ -1,33 +1,28 @@
+# Dataset: Car, Dimensions: 1, Length:	577, Train Size: 60, Test Size: 60, Classes: 4
+
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
 from tslearn.preprocessing import TimeSeriesScalerMinMax
-from tslearn.utils import to_time_series_dataset
 from sktime.datasets import load_UCR_UEA_dataset
+from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
-from sklearn.metrics import precision_score, roc_auc_score, f1_score
+from itertools import cycle
 from sklearn.preprocessing import label_binarize
 
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
 from aeon.classification.deep_learning.cnn import CNNClassifier
-#from sktime.classification.deep_learning.cnn import CNNClassifier
 from aeon.classification.deep_learning.fcn import FCNClassifier
 from sktime.classification.deep_learning.mcdcnn import MCDCNNClassifier
-from aeon.classification.deep_learning import InceptionTimeClassifier
-from sktime.classification.deep_learning.resnet import ResNetClassifier
-from aeon.classification.deep_learning.tapnet import TapNetClassifier
-
 
 # Dictionary-based:
 from aeon.classification.dictionary_based import (BOSSEnsemble, ContractableBOSS, IndividualBOSS,
                                                   TemporalDictionaryEnsemble, IndividualTDE, WEASEL, MUSE)
 
-
 # Distance-based:
-from aeon.classification.distance_based import ShapeDTW, ElasticEnsemble, KNeighborsTimeSeriesClassifier
+from aeon.classification.distance_based import ShapeDTW, KNeighborsTimeSeriesClassifier
 
 # Feature-based:
 from aeon.classification.feature_based import Catch22Classifier, FreshPRINCEClassifier
@@ -40,216 +35,211 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 # Load the dataset
-X, y = load_UCR_UEA_dataset("Car")
+X_train_raw, y_train = load_UCR_UEA_dataset("Car", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("Car", split="test", return_X_y=True)
 
-# Print classes and number of samples
-unique_classes, class_counts = np.unique(y, return_counts=True)
-print("Classes and Number of Samples:")
-for class_label, count in zip(unique_classes, class_counts):
-    print(f"Class {class_label}: {count} samples")
 
-# Extract features using tslearn
-X_processed = TimeSeriesScalerMinMax().fit_transform(to_time_series_dataset(X.iloc[:, 0]))
-# Flatten each time series into a one-dimensional array
-X_processed_flat = X_processed.reshape((X_processed.shape[0], -1))
+# Function to convert DataFrame to 2D numpy array
+def dataframe_to_2darray(df):
+    num_samples = df.shape[0]
+    num_timesteps = len(df.iloc[0, 0])
+    array_2d = np.empty((num_samples, num_timesteps))
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X_processed_flat, y, test_size=0.2, random_state=42)
+    for i in range(num_samples):
+        array_2d[i, :] = df.iloc[i, 0]
+
+    return array_2d
+
+
+# Convert and preprocess the data
+scaler = TimeSeriesScalerMinMax()
+X_train_processed = scaler.fit_transform(dataframe_to_2darray(X_train_raw))
+X_test_processed = scaler.transform(dataframe_to_2darray(X_test_raw))  # Use the same scaler to transform test data
+
+# Flatten each time series into a one-dimensional array for classifiers that require flat features
+X_train_flat = X_train_processed.reshape((X_train_processed.shape[0], -1))
+X_test_flat = X_test_processed.reshape((X_test_processed.shape[0], -1))
+
 
 # Define a list of classifiers
-classifiers = [
-    MLPClassifier(n_epochs=100),
-    CNNClassifier(n_epochs=100), #nai
-    FCNClassifier(n_epochs=100),#nai
-    MCDCNNClassifier(n_epochs=100), #nai
-    # InceptionTimeClassifier(), #apeiros xronos
-    # ResNetClassifier(), #oxi ME TIPOTA
-    # TapNetClassifier(n_epochs=20,batch_size=4), #oxi
+classifiers = [MLPClassifier(), CNNClassifier(), FCNClassifier(), MCDCNNClassifier(),
+               BOSSEnsemble(), ContractableBOSS(), IndividualBOSS(), TemporalDictionaryEnsemble(),
+               IndividualTDE(), WEASEL(support_probabilities=True), MUSE(support_probabilities=True),
+               ShapeDTW(), KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
+               SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
+               CanonicalIntervalForestClassifier(), DrCIFClassifier(), RocketClassifier(), Arsenal()]
 
-    # BOSSEnsemble(max_ensemble_size=3), #oxi
-    ContractableBOSS(n_parameter_samples=10, max_ensemble_size=3), #nai
-    IndividualBOSS(window_size=8, word_length=4, alphabet_size=6), #nai
-    # TemporalDictionaryEnsemble(n_parameter_samples=250, max_ensemble_size=50, randomly_selected_params=50, random_state=47), #oxi apeirh wra
-    IndividualTDE(), #nai
-    WEASEL(support_probabilities=True),  # nai
-    # MUSE(), #check error
-
-    ShapeDTW(), #nai
-    # ElasticEnsemble(proportion_of_param_options=0.1, proportion_train_for_test=0.1, distance_measures=["dtw", "ddtw"], majority_vote=True) #NO FUCKING WAY
-    # KNeighborsTimeSeriesClassifier() #sad
-
-    Catch22Classifier(), #nai
-    FreshPRINCEClassifier(), #nai
-
-    CanonicalIntervalForestClassifier(n_estimators=10, random_state=0), #nai
-    DrCIFClassifier(n_estimators=10, random_state=0), #nai
-    SupervisedTimeSeriesForest(), #nai
-    TimeSeriesForestClassifier(), #nai
-
-    RocketClassifier(), #nai
-    Arsenal(), #nai
-]
-
-# Initialize lists to store classifier names, accuracies, and confusion matrices
-classifier_names = []
-accuracies = []
-confusion_matrices = []
 # Initialize lists to store results
-execution_times = []
-precisions = []
-roc_auc_scores_macro = []
-f1_scores = []
+results = {"Classifier": [], "Execution Time": [], "Precision": [], "Accuracy": [],
+           "F1 Score": [], "ROC-AUC Score (Macro)": [], "ROC-AUC Score (Micro)": [], "Confusion Matrix": []}
 
-
-# Loop through classifiers
-for classifier in classifiers:
-    classifier_name = type(classifier).__name__
-    classifier_names.append(classifier_name)
-
-    # Measure the time taken for fitting
+# Function to evaluate classifier
+def evaluate_classifier(classifier, X_train, X_test, y_train, y_test):
     start_time = time.time()
     classifier.fit(X_train, y_train)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    execution_times.append(execution_time)
+    execution_time = time.time() - start_time
 
-    # Predict labels on the test set
     predicted_labels = classifier.predict(X_test)
-
-    # Calculate precision, accuracy, ROC-AUC score, and F1 score
     precision = precision_score(y_test, predicted_labels, average='weighted')
     accuracy = accuracy_score(y_test, predicted_labels)
     f1_score_val = f1_score(y_test, predicted_labels, average='weighted')
+    confusion = confusion_matrix(y_test, predicted_labels)
 
-    # Store the results
-    precisions.append(precision)
-    accuracies.append(accuracy)
-    f1_scores.append(f1_score_val)
-
-    # Calculate ROC-AUC score
+    roc_auc_macro = roc_auc_micro = None
     if hasattr(classifier, "predict_proba"):
-        # Convert multiclass labels to binary labels
-        y_test_bin = np.zeros((y_test.shape[0], len(np.unique(y))))
-        for i, class_label in enumerate(np.unique(y)):
-            y_test_bin[:, i] = np.where(y_test == class_label, 1, 0)
-
-        # Binarize the labels and calculate ROC-AUC for each class
         y_prob = classifier.predict_proba(X_test)
-        n_classes = y_test_bin.shape[1]
+        roc_auc_macro = roc_auc_score(y_test, y_prob, multi_class='ovr', average='macro')
+        roc_auc_micro = roc_auc_score(y_test, y_prob, multi_class='ovr', average='micro')
 
-        # Compute ROC curve and ROC-AUC score for each class
-        roc_auc_scores_class = []
-        num_plots = n_classes
-        num_cols = 2  # Number of columns in subplots
-        num_rows = -(-num_plots // num_cols)  # Ceiling division to calculate the number of rows
+    return execution_time, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion
 
-        plt.figure(figsize=(15, 5 * num_rows))
 
-        for i in range(num_plots):
-            fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_prob[:, i])
-            roc_auc = auc(fpr, tpr)
-            roc_auc_scores_class.append(roc_auc)
+# Preparing to plot ROC-AUC curves
+fpr_dict = {}
+tpr_dict = {}
+roc_auc_dict = {}
 
-            plt.subplot(num_rows, num_cols, i + 1)
-            plt.plot(fpr, tpr, lw=2, label=f'Class {i} (AUC = {roc_auc:.2f})')
-            plt.plot([0, 1], [0, 1], color='orange', lw=2, linestyle='--')
-            plt.xlim([0.0, 1.0])
-            plt.ylim([0.0, 1.05])
-            plt.xlabel('False Positive Rate')
-            plt.ylabel('True Positive Rate')
-            plt.title(f'{classifier_name} ROC-AUC Curves (Class {i})')
-            plt.legend(loc="lower right")
+# Evaluate each classifier
+for classifier in classifiers:
+    classifier_name = type(classifier).__name__
+    exec_time, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
+        evaluate_classifier(classifier, X_train_flat, X_test_flat, y_train, y_test)
 
-        plt.tight_layout()
-        plt.show()
-
-        # Compute macro-average ROC-AUC score
-        roc_auc_score_macro_val = np.mean(roc_auc_scores_class)
-        roc_auc_scores_macro.append(roc_auc_score_macro_val)
-
-        print(f"{classifier_name} ROC-AUC Score (Macro): {roc_auc_score_macro_val:.2f}")
+    results["Classifier"].append(classifier_name)
+    results["Execution Time"].append(exec_time)
+    results["Precision"].append(precision)
+    results["Accuracy"].append(accuracy)
+    results["F1 Score"].append(f1_score_val)
+    results["ROC-AUC Score (Macro)"].append(roc_auc_macro)
+    results["ROC-AUC Score (Micro)"].append(roc_auc_micro)
+    results["Confusion Matrix"].append(confusion)
 
     # Print results
-    print(f"{classifier_name} Execution Time: {execution_time:.2f}s")
+    print(f"{classifier_name} Execution Time: {exec_time:.2f}s")
     print(f"{classifier_name} Precision: {precision:.2f}")
     print(f"{classifier_name} Accuracy: {accuracy:.2f}")
     print(f"{classifier_name} F1 Score: {f1_score_val:.2f}")
+    print(f"{classifier_name} ROC-AUC Score (Macro): {roc_auc_macro:.2f}")
+    print(f"{classifier_name} ROC-AUC Score (Micro): {roc_auc_micro:.2f}")
 
-    # Print Classification Report
+    """# Classification report
+    start_time = time.time()
+    predicted_labels = classifier.predict(X_test_flat)
     report = classification_report(y_test, predicted_labels)
-    print(f"{classifier_name} Classification Report:\n{report}")
+    report_time = time.time() - start_time
+    print(f"Classification report time: {report_time:.2f}s")
+    print(f"{classifier_name} Classification Report:\n{report}")"""
 
-    # Calculate and store the confusion matrix
-    confusion = confusion_matrix(y_test, predicted_labels)
-    confusion_matrices.append(confusion)
+    if hasattr(classifier, "predict_proba"):
+        y_prob = classifier.predict_proba(X_test_flat)
+        y_test_bin = label_binarize(y_test, classes=np.unique(y_train))
+        n_classes = y_test_bin.shape[1]
+
+        fpr = dict()
+        tpr = dict()
+        roc_auc = dict()
+        for i in range(n_classes):
+            fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_prob[:, i])
+            roc_auc[i] = auc(fpr[i], tpr[i])
+
+        fpr_dict[classifier_name] = fpr
+        tpr_dict[classifier_name] = tpr
+        roc_auc_dict[classifier_name] = roc_auc
+
+# Function to plot ROC-AUC curves in separate subplots
+def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
+    num_classifiers = len(results["Classifier"])
+    num_cols = 3  # for a two-column layout
+    num_rows = np.ceil(num_classifiers / num_cols).astype(int)
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, num_rows * 5))
+
+    axes = axes.flatten()  # Flatten the axes array for easy indexing
+
+    for idx, classifier_name in enumerate(results["Classifier"]):
+        for i in range(n_classes):
+            axes[idx].plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], lw=2,
+                           label=f'ROC curve of class {i} (area = {roc_auc_dict[classifier_name][i]:.2f})')
+        axes[idx].plot([0, 1], [0, 1], 'k--', lw=2)
+        axes[idx].set_xlim([0.0, 1.0])
+        axes[idx].set_ylim([0.0, 1.05])
+        axes[idx].set_xlabel('False Positive Rate')
+        axes[idx].set_ylabel('True Positive Rate')
+        axes[idx].set_title(f'ROC-AUC for {classifier_name}')
+        axes[idx].legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.show()
+
+# Call the function to plot ROC-AUC curves
+plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)
 
 
-# Plot accuracies
-plt.figure(figsize=(10, 6))
-plt.bar(classifier_names, accuracies, color='skyblue')
-plt.xlabel('Classifiers')
-plt.ylabel('Accuracy')
-plt.title('Classifier Accuracy Comparison')
-plt.ylim(0, 1)
-plt.xticks(rotation=45)
-plt.show()
+"""# Plotting ROC-AUC curves
+plt.figure(figsize=(15, 10))
+colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive'])
+for classifier_name, color in zip(results["Classifier"], colors):
+    for i in range(n_classes):
+        plt.plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], color=color, lw=2,
+                 label=f'ROC curve of class {i} for {classifier_name} (area = {roc_auc_dict[classifier_name][i]:.2f})')
+
+plt.plot([0, 1], [0, 1], 'k--', lw=2)
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Multi-class ROC-AUC curves for all classifiers')
+plt.legend(loc="lower right")
+plt.show()"""
+
+# Function to plot results
+def plot_results(results, metric, title, color):
+    plt.figure(figsize=(10, 6))
+    plt.bar(results["Classifier"], results[metric], color=color)
+    plt.xlabel('Classifiers')
+    plt.ylabel(metric)
+    plt.title(title)
+    plt.ylim(0, 1)
+    plt.xticks(rotation=90, ha='right')
+    plt.show()
 
 
-# Plot macro-average ROC-AUC scores
-plt.figure(figsize=(10, 6))
-plt.bar(classifier_names, roc_auc_scores_macro, color='lightcoral')
-plt.xlabel('Classifiers')
-plt.ylabel('Macro-Average ROC-AUC Score')
-plt.title('Classifier ROC-AUC Score Comparison')
-plt.ylim(0, 1)
-plt.xticks(rotation=45)
-plt.show()
+# Plotting results with modified x-axis labels and dynamic y-axis limit for execution time
+def plot_results_mod(results, metric, title, color, ylabel):
+    plt.figure(figsize=(10, 6))
+    plt.bar(results["Classifier"], results[metric], color=color)
+    plt.xlabel('Classifiers')
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.xticks(rotation=90, ha='right')  # This will prevent overlapping of names
+    if metric == "Execution Time":
+        max_execution_time = max(results[metric])
+        plt.ylim(0, max_execution_time * 1.1)  # Add 10% headroom
+    else:
+        plt.ylim(0, 1)
+    plt.show()
 
-# Plot execution times
-plt.figure(figsize=(10, 6))
-plt.bar(classifier_names, execution_times, color='lightgreen')
-plt.xlabel('Classifiers')
-plt.ylabel('Execution Time (s)')
-plt.title('Classifier Execution Time Comparison')
-plt.xticks(rotation=45)
-plt.show()
-
-# Plot precisions
-plt.figure(figsize=(10, 6))
-plt.bar(classifier_names, precisions, color='gold')
-plt.xlabel('Classifiers')
-plt.ylabel('Precision')
-plt.title('Classifier Precision Comparison')
-plt.ylim(0, 1)
-plt.xticks(rotation=45)
-plt.show()
-
-# Plot F1 scores
-plt.figure(figsize=(10, 6))
-plt.bar(classifier_names, f1_scores, color='lightcoral')
-plt.xlabel('Classifiers')
-plt.ylabel('F1 Score')
-plt.title('Classifier F1 Score Comparison')
-plt.ylim(0, 1)
-plt.xticks(rotation=45)
-plt.show()
+# Plotting results
+plot_results(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
+plot_results(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
+plot_results_mod(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen", "Time (s)")
+plot_results(results, "Precision", "Classifier Precision Comparison", "gold")
+plot_results(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
 
 # Plot confusion matrices together
-num_classifiers = len(classifier_names)
-num_cols = 5
-num_rows = -(-num_classifiers // num_cols)  # Ceiling division to calculate the number of rows
+num_classifiers = len(results["Classifier"])
+num_cols = 3
+num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
-plt.figure(figsize=(20, 4 * num_rows))  # Adjust the figure size based on the number of rows
-
-for i, classifier_name in enumerate(classifier_names):
+plt.figure(figsize=(20, 4 * num_rows))
+for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
-    plt.imshow(confusion_matrices[i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix for {classifier_name}')
+    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(f'Confusion M. for {classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
-    plt.xticks(np.arange(len(np.unique(y))), np.unique(y), rotation=45)
-    plt.yticks(np.arange(len(np.unique(y))), np.unique(y))
-
+    tick_marks = np.arange(len(np.unique(y_train)))
+    plt.xticks(tick_marks, tick_marks, rotation=45)
+    plt.yticks(tick_marks, tick_marks)
 plt.tight_layout()
 plt.show()
