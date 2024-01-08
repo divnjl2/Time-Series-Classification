@@ -38,6 +38,10 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 X_train_raw, y_train = load_UCR_UEA_dataset("Car", split="train", return_X_y=True)
 X_test_raw, y_test = load_UCR_UEA_dataset("Car", split="test", return_X_y=True)
 
+# Print dataset sizes
+print("Length of each time series:", X_train_raw.iloc[0, 0].size)
+print("Train size:", len(y_train))
+print("Test size:", len(y_test))
 
 # Function to convert DataFrame to 2D numpy array
 def dataframe_to_2darray(df):

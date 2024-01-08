@@ -38,6 +38,10 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 X_train_raw, y_train = load_UCR_UEA_dataset("FiftyWords", split="train", return_X_y=True)
 X_test_raw, y_test = load_UCR_UEA_dataset("FiftyWords", split="test", return_X_y=True)
 
+# Print dataset sizes
+print("Length of each time series:", X_train_raw.iloc[0, 0].size)
+print("Train size:", len(y_train))
+print("Test size:", len(y_test))
 
 # Function to convert DataFrame to 2D numpy array
 def dataframe_to_2darray(df):
@@ -122,13 +126,13 @@ for classifier in classifiers:
     print(f"{classifier_name} ROC-AUC Score (Macro): {roc_auc_macro:.2f}")
     print(f"{classifier_name} ROC-AUC Score (Micro): {roc_auc_micro:.2f}")
 
-    # Classification report
+    """# Classification report
     start_time = time.time()
     predicted_labels = classifier.predict(X_test_flat)
     report = classification_report(y_test, predicted_labels)
     report_time = time.time() - start_time
     print(f"Classification report time: {report_time:.2f}s")
-    print(f"{classifier_name} Classification Report:\n{report}")
+    print(f"{classifier_name} Classification Report:\n{report}")"""
 
     if hasattr(classifier, "predict_proba"):
         y_prob = classifier.predict_proba(X_test_flat)
