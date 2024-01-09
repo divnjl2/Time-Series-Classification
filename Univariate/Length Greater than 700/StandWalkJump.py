@@ -1,4 +1,4 @@
-### Dataset: DucksAndGeese, Dimensions: 1, Length:	236784, Train Size: 50, Test Size: 50, Classes: 5 ###
+### Dataset: StandWalkJump, Dimensions: 1, Length:	2500, Train Size: 12, Test Size: 15, Classes: 3 ###
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +9,8 @@ from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
 from itertools import cycle
 from sklearn.preprocessing import label_binarize
+from collections import Counter
+import seaborn as sns
 
 
 # Deep Learning:
@@ -35,13 +37,29 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("DucksAndGeese", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("DucksAndGeese", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("StandWalkJump", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("StandWalkJump", split="test", return_X_y=True)
 
-# Print dataset sizes
+# Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
 print("Train size:", len(y_train))
 print("Test size:", len(y_test))
+print("Training set class distribution:", Counter(y_train))
+print("Test set class distribution:", Counter(y_test))
+
+# Function to plot class distribution
+def plot_class_distribution(y, title):
+    plt.figure(figsize=(8, 4))
+    sns.countplot(y)
+    plt.title(title)
+    plt.xlabel('Classes')
+    plt.ylabel('Frequency')
+    plt.show()
+
+# Plot class distribution for training and test sets
+plot_class_distribution(y_train, 'Class Distribution in Training Set')
+plot_class_distribution(y_test, 'Class Distribution in Test Set')
+
 
 # Function to convert DataFrame to 2D numpy array
 def dataframe_to_2darray(df):
@@ -153,7 +171,7 @@ for classifier in classifiers:
 # Function to plot ROC-AUC curves in separate subplots
 def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
     num_classifiers = len(results["Classifier"])
-    num_cols = 7  # for a two-column layout
+    num_cols = 3  # for a two-column layout
     num_rows = np.ceil(num_classifiers / num_cols).astype(int)
     fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, num_rows * 5))
 
@@ -195,39 +213,33 @@ plt.title('Multi-class ROC-AUC curves for all classifiers')
 plt.legend(loc="lower right")
 plt.show()"""
 
-# Function to plot results
-def plot_results(results, metric, title, color):
-    plt.figure(figsize=(10, 6))
+# Function to plot results with better label visibility
+def plot_results_improved(results, metric, title, color, ylabel=None):
+    # Set a larger figure size to give more space
+    plt.figure(figsize=(15, 8))
     plt.bar(results["Classifier"], results[metric], color=color)
     plt.xlabel('Classifiers')
-    plt.ylabel(metric)
+    if ylabel:
+        plt.ylabel(ylabel)
     plt.title(title)
-    plt.ylim(0, 1)
-    plt.xticks(rotation=90, ha='right')
-    plt.show()
-
-
-# Plotting results with modified x-axis labels and dynamic y-axis limit for execution time
-def plot_results_mod(results, metric, title, color, ylabel):
-    plt.figure(figsize=(10, 6))
-    plt.bar(results["Classifier"], results[metric], color=color)
-    plt.xlabel('Classifiers')
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.xticks(rotation=90, ha='right')  # This will prevent overlapping of names
+    # Set dynamic y-axis limit for execution time
     if metric == "Execution Time":
         max_execution_time = max(results[metric])
         plt.ylim(0, max_execution_time * 1.1)  # Add 10% headroom
     else:
         plt.ylim(0, 1)
+    # Rotate the x labels to 45 degrees and align to the right to improve visibility
+    plt.xticks(rotation=45, ha='right')
+    # Use tight layout to further prevent overlap
+    plt.tight_layout()
     plt.show()
 
-# Plotting results
-plot_results(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
-plot_results(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
-plot_results_mod(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen", "Time (s)")
-plot_results(results, "Precision", "Classifier Precision Comparison", "gold")
-plot_results(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
+# Apply the improved plotting function for each metric you want to plot
+plot_results_improved(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
+plot_results_improved(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
+plot_results_improved(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen", ylabel="Time (s)")
+plot_results_improved(results, "Precision", "Classifier Precision Comparison", "gold")
+plot_results_improved(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
 
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
@@ -238,7 +250,7 @@ plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
     plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Confusion M. for {classifier_name}')
+    plt.title(f'Conf. M. for {classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')

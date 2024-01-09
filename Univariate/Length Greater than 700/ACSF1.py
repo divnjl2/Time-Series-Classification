@@ -1,4 +1,4 @@
-# Dataset: Car, Dimensions: 1, Length:	577, Train Size: 60, Test Size: 60, Classes: 4
+### Dataset: ACSF1, Dimensions: 1, Length:	1460, Train Size: 100, Test Size: 100, Classes: 10 ###
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,8 +35,8 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("Car", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("Car", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("ACSF1", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("ACSF1", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -58,10 +58,6 @@ def plot_class_distribution(y, title):
 plot_class_distribution(y_train, 'Class Distribution in Training Set')
 plot_class_distribution(y_test, 'Class Distribution in Test Set')
 
-# Print dataset sizes
-print("Length of each time series:", X_train_raw.iloc[0, 0].size)
-print("Train size:", len(y_train))
-print("Test size:", len(y_test))
 
 # Function to convert DataFrame to 2D numpy array
 def dataframe_to_2darray(df):
@@ -215,6 +211,18 @@ plt.title('Multi-class ROC-AUC curves for all classifiers')
 plt.legend(loc="lower right")
 plt.show()"""
 
+# Function to plot results
+def plot_results(results, metric, title, color):
+    plt.figure(figsize=(10, 6))
+    plt.bar(results["Classifier"], results[metric], color=color)
+    plt.xlabel('Classifiers')
+    plt.ylabel(metric)
+    plt.title(title)
+    plt.ylim(0, 1)
+    plt.xticks(rotation=90, ha='right')
+    plt.show()
+
+
 # Function to plot results with better label visibility
 def plot_results_improved(results, metric, title, color, ylabel=None):
     # Set a larger figure size to give more space
@@ -236,8 +244,6 @@ def plot_results_improved(results, metric, title, color, ylabel=None):
     plt.tight_layout()
     plt.show()
 
-# ... [other parts of your code] ...
-
 # Apply the improved plotting function for each metric you want to plot
 plot_results_improved(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
 plot_results_improved(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
@@ -245,16 +251,17 @@ plot_results_improved(results, "Execution Time", "Classifier Execution Time Comp
 plot_results_improved(results, "Precision", "Classifier Precision Comparison", "gold")
 plot_results_improved(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
 
+
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
-num_cols = 3
+num_cols = 7
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
     plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Confusion M. for {classifier_name}')
+    plt.title(f'Conf. M. for {classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
