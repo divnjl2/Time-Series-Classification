@@ -1,4 +1,4 @@
-# Dataset: FiftyWords, Dimensions: 1, Length:	270, Train Size: 450, Test Size: 455, Classes: 50
+### Dataset: PigArtPressure, Dimensions: 1, Length: 2000, Train Size: 104, Test Size: 208, Classes: 52 ###
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,11 +7,9 @@ from tslearn.preprocessing import TimeSeriesScalerMinMax
 from sktime.datasets import load_UCR_UEA_dataset
 from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
-from itertools import cycle
 from sklearn.preprocessing import label_binarize
 from collections import Counter
 import seaborn as sns
-
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
@@ -36,9 +34,12 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 # Kernel-based:
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
+
+dataset_name = "PigArtPressure"  # Change this to match your dataset name
+
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("FiftyWords", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("FiftyWords", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("PigArtPressure", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("PigArtPressure", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -99,9 +100,10 @@ results = {"Classifier": [], "Execution Time": [], "Precision": [], "Accuracy": 
 def evaluate_classifier(classifier, X_train, X_test, y_train, y_test):
     start_time = time.time()
     classifier.fit(X_train, y_train)
-    execution_time = time.time() - start_time
 
     predicted_labels = classifier.predict(X_test)
+    execution_time = time.time() - start_time
+
     precision = precision_score(y_test, predicted_labels, average='weighted')
     accuracy = accuracy_score(y_test, predicted_labels)
     f1_score_val = f1_score(y_test, predicted_labels, average='weighted')
@@ -143,14 +145,6 @@ for classifier in classifiers:
     print(f"{classifier_name} F1 Score: {f1_score_val:.2f}")
     print(f"{classifier_name} ROC-AUC Score (Macro): {roc_auc_macro:.2f}")
     print(f"{classifier_name} ROC-AUC Score (Micro): {roc_auc_micro:.2f}")
-
-    """# Classification report
-    start_time = time.time()
-    predicted_labels = classifier.predict(X_test_flat)
-    report = classification_report(y_test, predicted_labels)
-    report_time = time.time() - start_time
-    print(f"Classification report time: {report_time:.2f}s")
-    print(f"{classifier_name} Classification Report:\n{report}")"""
 
     if hasattr(classifier, "predict_proba"):
         y_prob = classifier.predict_proba(X_test_flat)
@@ -196,8 +190,8 @@ def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
 plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)"""
 
 
-# Function to plot ROC-AUC curves in separate subplots with improved legend placement
-def plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
+# Function to plot ROC-AUC curves in separate subplots with improved legend placement -In case the classes are too many
+def plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes, dataset_name):
     num_classifiers = len(results["Classifier"])
     num_cols = 3  # for a two-column layout
     num_rows = np.ceil(num_classifiers / num_cols).astype(int)
@@ -221,21 +215,23 @@ def plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_cl
         ax.set_ylim([0.0, 1.05])
         ax.set_xlabel('False Positive Rate')
         ax.set_ylabel('True Positive Rate')
-        ax.set_title(f'ROC-AUC for {classifier_name}')
+        title = f"{dataset_name} ROC-AUC for {classifier_name}"
+        ax.set_title(title)
 
         # Place the legend outside the plot area
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3, fontsize='small')
 
     # Adjust layout to prevent overlap and to fit the legends
     plt.tight_layout()
+    plt.savefig(f"{dataset_name}_ROC_AUC_curves.png", bbox_inches='tight')
+    plt.show()
     plt.show()
 
 
 # Call the improved function to plot ROC-AUC curves
-plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)
+plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes, dataset_name)
 
-
-# Plotting ROC-AUC curves
+"""# Plotting ROC-AUC curves
 plt.figure(figsize=(15, 10))
 colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive'])
 for classifier_name, color in zip(results["Classifier"], colors):
@@ -250,51 +246,64 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Multi-class ROC-AUC curves for all classifiers')
 plt.legend(loc="lower right")
-plt.show()
+plt.show()"""
 
-# Function to plot results with better label visibility
-def plot_results_improved(results, metric, title, color, ylabel=None):
-    # Set a larger figure size to give more space
+# Function to plot results
+def plot_results(results, metric, title, color):
+    plt.figure(figsize=(10, 6))
+    plt.bar(results["Classifier"], results[metric], color=color)
+    plt.xlabel('Classifiers')
+    plt.ylabel(metric)
+    plt.title(title)
+    plt.ylim(0, 1)
+    plt.xticks(rotation=90, ha='right')
+    plt.show()
+
+
+def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
     plt.figure(figsize=(15, 8))
     plt.bar(results["Classifier"], results[metric], color=color)
     plt.xlabel('Classifiers')
     if ylabel:
         plt.ylabel(ylabel)
+    title = f"{dataset_name} {metric} Comparison"
     plt.title(title)
-    # Set dynamic y-axis limit for execution time
     if metric == "Execution Time":
         max_execution_time = max(results[metric])
-        plt.ylim(0, max_execution_time * 1.1)  # Add 10% headroom
+        plt.ylim(0, max_execution_time * 1.1)
     else:
         plt.ylim(0, 1)
-    # Rotate the x labels to 45 degrees and align to the right to improve visibility
     plt.xticks(rotation=45, ha='right')
-    # Use tight layout to further prevent overlap
     plt.tight_layout()
+    # Save the figure
+    plt.savefig(f"{dataset_name}_{metric}.png", bbox_inches='tight')
     plt.show()
 
 # Apply the improved plotting function for each metric you want to plot
-plot_results_improved(results, "Accuracy", "Classifier Accuracy Comparison", "skyblue")
-plot_results_improved(results, "ROC-AUC Score (Macro)", "Classifier Macro-Average ROC-AUC Score Comparison", "lightcoral")
-plot_results_improved(results, "Execution Time", "Classifier Execution Time Comparison", "lightgreen", ylabel="Time (s)")
-plot_results_improved(results, "Precision", "Classifier Precision Comparison", "gold")
-plot_results_improved(results, "F1 Score", "Classifier F1 Score Comparison", "lightcoral")
+plot_results_improved(results, "Accuracy", dataset_name, "skyblue")
+plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "lightcoral")
+plot_results_improved(results, "Execution Time", dataset_name, "lightgreen", ylabel="Time (s)")
+plot_results_improved(results, "Precision", dataset_name, "gold")
+plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
+
 
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
-num_cols = 3
+num_cols = 7
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
     plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Confusion M. for {classifier_name}')
+    plt.title(f'Conf. M. for {classifier_name}')
     plt.colorbar()
+    plt.title(f'{dataset_name} Conf. Matrix for {classifier_name}')
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
     tick_marks = np.arange(len(np.unique(y_train)))
     plt.xticks(tick_marks, tick_marks, rotation=45)
     plt.yticks(tick_marks, tick_marks)
 plt.tight_layout()
+plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
