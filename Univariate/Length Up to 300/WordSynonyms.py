@@ -44,11 +44,11 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "FiftyWords"  # Change this to match your dataset name
+dataset_name = "WordSynonyms"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("FiftyWords", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("FiftyWords", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("WordSynonyms", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("WordSynonyms", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -245,7 +245,7 @@ plt.show()
 def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name=dataset_name):
     plt.figure(figsize=(10, 8))
 
-    colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan'])
+    colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'lime', 'yellow', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine', 'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
 
     for (classifier_name, color) in zip(classifiers, colors):
         fpr = fpr_dict[classifier_name]
