@@ -39,11 +39,12 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
-dataset_name = "ArrowHead"  # Change this to match your dataset name
+
+dataset_name = "BasicMotions"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("ArrowHead", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("ArrowHead", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("BasicMotions", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("BasicMotions", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -316,11 +317,9 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
     if metric == "Execution Time":
         max_execution_time = max(results[metric])
         plt.ylim(0, max_execution_time * 1.1)
-    if metric == "Memory Usage":
-        max_memory_usage = max(results[metric])
-        plt.ylim(0, max_memory_usage * 1.1)
     else:
-        plt.ylim(0, 1)
+        plt.ylim(0, max(results[metric]) * 1.1)  # Adjust for other metrics as well
+
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     # Save the figure
@@ -345,14 +344,19 @@ plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
     plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title(f'Conf. M. for {classifier_name}')
+    plt.title(f'{classifier_name}')
     plt.colorbar()
-    plt.title(f'{dataset_name} C. M., {classifier_name}')
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
     tick_marks = np.arange(len(np.unique(y_train)))
     plt.xticks(tick_marks, tick_marks, rotation=45)
     plt.yticks(tick_marks, tick_marks)
-plt.tight_layout()
+
+# Adjust the spacing of the subplots to make room for the suptitle
+plt.subplots_adjust(top=0.85)  # You may need to adjust this value
+plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
+
+# Save the figure with enough room for the suptitle
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
 plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
