@@ -274,15 +274,16 @@ def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_c
     plt.title(f'{dataset_name} Macro-average ROC curve per classifier')
     plt.legend(loc="lower right")
     plt.tight_layout()
-    plt.show()
 
     # Save the figure with the dataset name in the filename
     filename = f"{dataset_name}_macro_average_roc_curve.png"
     plt.savefig(filename)
+    plt.show()
     plt.close()  # Close the figure to free memory
 
 # Call the function with the appropriate parameters
 plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, results["Classifier"], n_classes)
+
 
 # Function to plot results
 def plot_results(results, metric, title, color):
