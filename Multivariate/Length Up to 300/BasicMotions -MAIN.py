@@ -56,41 +56,25 @@ print("Test size:", len(y_test))
 print("Training set class distribution:", Counter(y_train))
 print("Test set class distribution:", Counter(y_test))
 
-"""# Function to plot class distribution
-def plot_class_distribution(y, title):
-    plt.figure(figsize=(8, 4))
-    sns.countplot(y)
-    plt.title(title)
-    plt.xlabel('Classes')
-    plt.ylabel('Frequency')
-    plt.show()
 
-# Plot class distribution for training and test sets
-plot_class_distribution(y_train, 'Class Distribution in Training Set')
-plot_class_distribution(y_test, 'Class Distribution in Test Set')"""
-
-
-# Function to convert DataFrame to 2D numpy array
-def dataframe_to_2darray(df):
+# Function to convert DataFrame to 3D numpy array (for multivariate time series)
+def dataframe_to_3darray(df):
     num_samples = df.shape[0]
-    num_timesteps = len(df.iloc[0, 0])
-    array_2d = np.empty((num_samples, num_timesteps))
+    num_channels = df.shape[1]
+    num_timesteps = df.iloc[0, 0].shape[0]
+    array_3d = np.empty((num_samples, num_channels, num_timesteps))
 
     for i in range(num_samples):
-        array_2d[i, :] = df.iloc[i, 0]
+        for c in range(num_channels):
+            array_3d[i, c, :] = df.iloc[i, c]
 
-    return array_2d
+    return array_3d
 
 
-# Convert and preprocess the data
+# Convert and preprocess the data (maintaining multivariate structure)
 scaler = TimeSeriesScalerMinMax()
-X_train_processed = scaler.fit_transform(dataframe_to_2darray(X_train_raw))
-X_test_processed = scaler.transform(dataframe_to_2darray(X_test_raw))  # Use the same scaler to transform test data
-
-# Flatten each time series into a one-dimensional array for classifiers that require flat features
-X_train_flat = X_train_processed.reshape((X_train_processed.shape[0], -1))
-X_test_flat = X_test_processed.reshape((X_test_processed.shape[0], -1))
-
+X_train_processed = scaler.fit_transform(dataframe_to_3darray(X_train_raw))
+X_test_processed = scaler.transform(dataframe_to_3darray(X_test_raw))
 
 # Check for class imbalance
 class_distribution = Counter(y_train)
@@ -103,23 +87,34 @@ imbalance_threshold = 0.5
 resampling_done = False
 
 # Initialize resampled data with original data
-X_train_flat_resampled, y_train_resampled = X_train_flat, y_train
+X_train_processed_resampled, y_train_resampled = X_train_processed, y_train
 
 # Apply oversampling if there is class imbalance
 if imbalance_ratio < imbalance_threshold:
     print("Class imbalance detected. Applying RandomOverSampler...")
     ros = RandomOverSampler(random_state=0)
-    X_train_flat_resampled, y_train_resampled = ros.fit_resample(X_train_flat, y_train)
+    X_train_processed_resampled, y_train_resampled = ros.fit_resample(X_train_processed, y_train)
     resampling_done = True
 
 
 # Define a list of classifiers
-classifiers = [MLPClassifier(), CNNClassifier(), FCNClassifier(), MCDCNNClassifier(),
-               BOSSEnsemble(), ContractableBOSS(), IndividualBOSS(), TemporalDictionaryEnsemble(),
-               IndividualTDE(), WEASEL(support_probabilities=True), MUSE(support_probabilities=True),
-               ShapeDTW(), KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
+classifiers = [MLPClassifier(),
+               CNNClassifier(),
+               FCNClassifier(),
+               MCDCNNClassifier(),
+               #BOSSEnsemble(), #only for 1-dimensional
+               #ContractableBOSS(), #only for 1-dimensional
+               #IndividualBOSS(), #only for 1-dimensional
+               TemporalDictionaryEnsemble(),
+               IndividualTDE(),
+               #WEASEL(support_probabilities=True), #only for 1-dimensional
+               MUSE(support_probabilities=True),
+               #ShapeDTW(), #only for 1-dimensional
+               KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
                SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
-               CanonicalIntervalForestClassifier(), DrCIFClassifier(), RocketClassifier(), Arsenal()]
+               CanonicalIntervalForestClassifier(), DrCIFClassifier(),
+               RocketClassifier(),
+               Arsenal()]
 
 # Initialize lists to store results
 results = {"Classifier": [], "Execution Time": [], "Memory Usage": [], "Precision": [], "Accuracy": [],
@@ -168,11 +163,11 @@ for classifier in classifiers:
     # Use the resampled data if resampling was done, else use the original data
     if resampling_done:
         exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_flat, X_test_flat, y_train, y_test)
+            evaluate_classifier(classifier, X_train_processed, X_test_processed, y_train, y_test)
 
     else:
         exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_flat_resampled, X_test_flat, y_train_resampled, y_test)
+            evaluate_classifier(classifier, X_train_processed_resampled, X_test_processed, y_train_resampled, y_test)
 
 
     results["Classifier"].append(classifier_name)
@@ -196,7 +191,7 @@ for classifier in classifiers:
 
 
     if hasattr(classifier, "predict_proba"):
-        y_prob = classifier.predict_proba(X_test_flat)
+        y_prob = classifier.predict_proba(X_test_processed)
         y_test_bin = label_binarize(y_test, classes=np.unique(y_train))
         n_classes = y_test_bin.shape[1]
 
