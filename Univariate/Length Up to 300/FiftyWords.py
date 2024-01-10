@@ -1,7 +1,5 @@
 # Dataset: FiftyWords, Dimensions: 1, Length:	270, Train Size: 450, Test Size: 455, Classes: 50
 
-# Dataset: ArrowHead, Dimensions: 1, Length:	251, Train Size: 36, Test Size: 175, Classes: 3
-
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
@@ -18,6 +16,8 @@ from collections import Counter
 import seaborn as sns
 from memory_profiler import memory_usage
 from imblearn.over_sampling import RandomOverSampler
+from itertools import cycle
+from scipy import interp
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
@@ -56,19 +56,6 @@ print("Train size:", len(y_train))
 print("Test size:", len(y_test))
 print("Training set class distribution:", Counter(y_train))
 print("Test set class distribution:", Counter(y_test))
-
-"""# Function to plot class distribution
-def plot_class_distribution(y, title):
-    plt.figure(figsize=(8, 4))
-    sns.countplot(y)
-    plt.title(title)
-    plt.xlabel('Classes')
-    plt.ylabel('Frequency')
-    plt.show()
-
-# Plot class distribution for training and test sets
-plot_class_distribution(y_train, 'Class Distribution in Training Set')
-plot_class_distribution(y_test, 'Class Distribution in Test Set')"""
 
 
 # Function to convert DataFrame to 2D numpy array
@@ -212,37 +199,8 @@ for classifier in classifiers:
         tpr_dict[classifier_name] = tpr
         roc_auc_dict[classifier_name] = roc_auc
 
-"""# Function to plot ROC-AUC curves in separate subplots
-def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
-    num_classifiers = len(results["Classifier"])
-    num_cols = 3  # for a two-column layout
-    num_rows = np.ceil(num_classifiers / num_cols).astype(int)
-    fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, num_rows * 5))
-
-    axes = axes.flatten()  # Flatten the axes array for easy indexing
-
-    for idx, classifier_name in enumerate(results["Classifier"]):
-        for i in range(n_classes):
-            axes[idx].plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], lw=2,
-                           label=f'ROC curve of class {i} (area = {roc_auc_dict[classifier_name][i]:.2f})')
-        axes[idx].plot([0, 1], [0, 1], 'k--', lw=2)
-        axes[idx].set_xlim([0.0, 1.0])
-        axes[idx].set_ylim([0.0, 1.05])
-        axes[idx].set_xlabel('False Positive Rate')
-        axes[idx].set_ylabel('True Positive Rate')
-        axes[idx].set_title(f'ROC-AUC for {classifier_name}')
-        axes[idx].legend(loc="lower right")
-
-    plt.tight_layout()
-    plt.show()
-
-# Call the function to plot ROC-AUC curves
-plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)"""
-
-
 
 # Plot ROC-AUC Curves
-
 # Define the number of columns and rows you want
 num_cols = 4  # Fewer columns
 num_rows = 6  # More rows to accommodate all classifiers, assuming 21 classifiers
@@ -285,22 +243,48 @@ plt.savefig(f"{dataset_name}_ROC_AUC_curves.png", bbox_inches='tight')
 plt.show()
 
 
-"""# Plotting ROC-AUC curves
-plt.figure(figsize=(15, 10))
-colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive'])
-for classifier_name, color in zip(results["Classifier"], colors):
-    for i in range(n_classes):
-        plt.plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], color=color, lw=2,
-                 label=f'ROC curve of class {i} for {classifier_name} (area = {roc_auc_dict[classifier_name][i]:.2f})')
+def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name=dataset_name):
+    plt.figure(figsize=(10, 8))
 
-plt.plot([0, 1], [0, 1], 'k--', lw=2)
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Multi-class ROC-AUC curves for all classifiers')
-plt.legend(loc="lower right")
-plt.show()"""
+    colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan'])
+
+    for (classifier_name, color) in zip(classifiers, colors):
+        fpr = fpr_dict[classifier_name]
+        tpr = tpr_dict[classifier_name]
+        roc_auc = roc_auc_dict[classifier_name]
+
+        all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+        mean_tpr = np.zeros_like(all_fpr)
+        for i in range(n_classes):
+            mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])  # Use np.interp instead of interp
+        mean_tpr /= n_classes
+
+        fpr["macro"] = all_fpr
+        tpr["macro"] = mean_tpr
+        roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+        plt.plot(fpr["macro"], tpr["macro"],
+                 label=f'macro-average ROC curve of {classifier_name} (area = {roc_auc["macro"]:.2f})',
+                 color=color, linestyle='-', linewidth=2)
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'{dataset_name} Macro-average ROC curve per classifier')
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.show()
+
+    # Save the figure with the dataset name in the filename
+    filename = f"{dataset_name}_macro_average_roc_curve.png"
+    plt.savefig(filename)
+    plt.close()  # Close the figure to free memory
+
+# Call the function with the appropriate parameters
+plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, results["Classifier"], n_classes)
+
 
 # Function to plot results
 def plot_results(results, metric, title, color):

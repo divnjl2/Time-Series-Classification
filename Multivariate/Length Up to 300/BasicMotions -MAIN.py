@@ -43,6 +43,7 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
+
 dataset_name = "BasicMotions"  # Change this to match your dataset name
 
 # Load the dataset
@@ -76,7 +77,7 @@ scaler = TimeSeriesScalerMinMax()
 X_train_processed = scaler.fit_transform(dataframe_to_3darray(X_train_raw))
 X_test_processed = scaler.transform(dataframe_to_3darray(X_test_raw))
 
-# Check for class imbalance
+"""# Check for class imbalance
 class_distribution = Counter(y_train)
 min_class_size = min(class_distribution.values())
 max_class_size = max(class_distribution.values())
@@ -94,7 +95,7 @@ if imbalance_ratio < imbalance_threshold:
     print("Class imbalance detected. Applying RandomOverSampler...")
     ros = RandomOverSampler(random_state=0)
     X_train_processed_resampled, y_train_resampled = ros.fit_resample(X_train_processed, y_train)
-    resampling_done = True
+    resampling_done = True"""
 
 
 # Define a list of classifiers
@@ -160,14 +161,8 @@ roc_auc_dict = {}
 # Evaluate each classifier
 for classifier in classifiers:
     classifier_name = type(classifier).__name__
-    # Use the resampled data if resampling was done, else use the original data
-    if resampling_done:
-        exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_processed, X_test_processed, y_train, y_test)
-
-    else:
-        exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_processed_resampled, X_test_processed, y_train_resampled, y_test)
+    exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
+        evaluate_classifier(classifier, X_train_processed, X_test_processed, y_train, y_test)
 
 
     results["Classifier"].append(classifier_name)
@@ -339,7 +334,7 @@ plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
 
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
-num_cols = 7
+num_cols = 6
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
