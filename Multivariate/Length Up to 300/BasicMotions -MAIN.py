@@ -1,3 +1,6 @@
+### Dataset: BasicMotions, Dimensions: 6, Length: 100, Train Size: 40, Test Size: 40, Classes: 4, Type: HAR ###
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
@@ -236,46 +239,50 @@ def plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes):
 plot_roc_auc_curves(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes)"""
 
 
-# Function to plot ROC-AUC curves in separate subplots with improved legend placement -In case the classes are too many
-def plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes, dataset_name):
-    num_classifiers = len(results["Classifier"])
-    num_cols = 3  # for a two-column layout
-    num_rows = np.ceil(num_classifiers / num_cols).astype(int)
 
-    # Increase the figure size
-    fig, axes = plt.subplots(num_rows, num_cols, figsize=(20, num_rows * 10))
-    axes = axes.flatten()  # Flatten the axes array for easy indexing
+# Plot ROC-AUC Curves
 
-    for idx, classifier_name in enumerate(results["Classifier"]):
-        ax = axes[idx]
-        for i in range(n_classes):
-            # Plot each class's ROC curve
-            ax.plot(fpr_dict[classifier_name][i], tpr_dict[classifier_name][i], lw=2,
-                    label=f'Class {i} (AUC = {roc_auc_dict[classifier_name][i]:.2f})')
+# Define the number of columns and rows you want
+num_cols = 4  # Fewer columns
+num_rows = 6  # More rows to accommodate all classifiers, assuming 21 classifiers
 
-        # Plot the line of no skill
-        ax.plot([0, 1], [0, 1], 'k--', lw=2)
+# Calculate figure size dynamically based on the number of columns and rows
+# Each subplot will be of size (4, 4) for example, but you can adjust this as needed
+subplot_size_width = 4
+subplot_size_height = 4
+fig_width = subplot_size_width * num_cols
+fig_height = subplot_size_height * num_rows
 
-        # Set the limits and labels
-        ax.set_xlim([0.0, 1.0])
-        ax.set_ylim([0.0, 1.05])
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        title = f"{dataset_name} ROC-AUC for {classifier_name}"
-        ax.set_title(title)
+# Initialize the figure with the calculated dimensions
+plt.figure(figsize=(fig_width, fig_height))
 
-        # Place the legend outside the plot area
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3, fontsize='small')
+# Create the ROC AUC plots
+for i, classifier_name in enumerate(results["Classifier"]):
+    ax = plt.subplot(num_rows, num_cols, i + 1)
+    for j in range(n_classes):
+        ax.plot(fpr_dict[classifier_name][j], tpr_dict[classifier_name][j], lw=2,
+                label=f'Class {j} (AUC = {roc_auc_dict[classifier_name][j]:.2f})')
+    ax.plot([0, 1], [0, 1], 'k--', lw=2)
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title(f'ROC AUC for {classifier_name}')
+    ax.legend(loc="lower right")
 
-    # Adjust layout to prevent overlap and to fit the legends
-    plt.tight_layout()
-    plt.savefig(f"{dataset_name}_ROC_AUC_curves.png", bbox_inches='tight')
-    plt.show()
-    plt.show()
+# Adjust the spacing between subplots and the top edge of the figure
+plt.subplots_adjust(hspace=0.3, wspace=0.3, top=0.9)
 
+# Add an overall title
+plt.suptitle(f'{dataset_name} ROC AUC Curves', fontsize=20, y=0.98)
 
-# Call the improved function to plot ROC-AUC curves
-plot_roc_auc_curves_improved(fpr_dict, tpr_dict, roc_auc_dict, results, n_classes, dataset_name)
+# Save the figure with enough room for the suptitle
+plt.tight_layout()  # This adjusts subplot params so that the subplots fit into the figure area.
+plt.subplots_adjust(top=0.95)  # Adjust this value to increase the space for the title.
+plt.suptitle(f"{dataset_name} ROC AUC Curves", fontsize=16)
+plt.savefig(f"{dataset_name}_ROC_AUC_curves.png", bbox_inches='tight')
+plt.show()
+
 
 """# Plotting ROC-AUC curves
 plt.figure(figsize=(15, 10))
