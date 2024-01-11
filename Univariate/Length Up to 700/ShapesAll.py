@@ -330,7 +330,7 @@ num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
-    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
+    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Oranges)
     plt.title(f'{classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
