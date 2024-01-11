@@ -5,20 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
 from tslearn.preprocessing import TimeSeriesScalerMinMax
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
-from tslearn.preprocessing import TimeSeriesScalerMinMax
 from sktime.datasets import load_UCR_UEA_dataset
 from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
 from sklearn.preprocessing import label_binarize
 from collections import Counter
-import seaborn as sns
 from memory_profiler import memory_usage
-from imblearn.over_sampling import RandomOverSampler
 from itertools import cycle
-from scipy import interp
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
@@ -79,43 +72,22 @@ scaler = TimeSeriesScalerMinMax()
 X_train_processed = scaler.fit_transform(dataframe_to_3darray(X_train_raw))
 X_test_processed = scaler.transform(dataframe_to_3darray(X_test_raw))
 
-"""# Check for class imbalance
-class_distribution = Counter(y_train)
-min_class_size = min(class_distribution.values())
-max_class_size = max(class_distribution.values())
-imbalance_ratio = min_class_size / max_class_size
-imbalance_threshold = 0.5
-
-# Flag to indicate whether resampling was done
-resampling_done = False
-
-# Initialize resampled data with original data
-X_train_processed_resampled, y_train_resampled = X_train_processed, y_train
-
-# Apply oversampling if there is class imbalance
-if imbalance_ratio < imbalance_threshold:
-    print("Class imbalance detected. Applying RandomOverSampler...")
-    ros = RandomOverSampler(random_state=0)
-    X_train_processed_resampled, y_train_resampled = ros.fit_resample(X_train_processed, y_train)
-    resampling_done = True"""
-
 
 # Define a list of classifiers
 classifiers = [MLPClassifier(),
                CNNClassifier(),
                FCNClassifier(),
                MCDCNNClassifier(),
-               #BOSSEnsemble(), #only for 1-dimensional
-               #ContractableBOSS(), #only for 1-dimensional
-               #IndividualBOSS(), #only for 1-dimensional
                TemporalDictionaryEnsemble(),
                IndividualTDE(),
-               #WEASEL(support_probabilities=True), #only for 1-dimensional
                MUSE(support_probabilities=True),
-               #ShapeDTW(), #only for 1-dimensional
-               KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
-               SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
-               CanonicalIntervalForestClassifier(), DrCIFClassifier(),
+               KNeighborsTimeSeriesClassifier(),
+               Catch22Classifier(),
+               FreshPRINCEClassifier(),
+               SupervisedTimeSeriesForest(),
+               TimeSeriesForestClassifier(),
+               CanonicalIntervalForestClassifier(),
+               DrCIFClassifier(),
                RocketClassifier(),
                Arsenal()]
 
@@ -325,7 +297,7 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
 plot_results_improved(results, "Accuracy", dataset_name, "skyblue")
 plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "lightcoral")
 plot_results_improved(results, "Execution Time", dataset_name, "lightgreen", ylabel="Time (s)")
-plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Time (s)")
+plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Space (MB)")
 plot_results_improved(results, "Precision", dataset_name, "gold")
 plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
 

@@ -317,7 +317,7 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
 plot_results_improved(results, "Accuracy", dataset_name, "skyblue")
 plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "lightcoral")
 plot_results_improved(results, "Execution Time", dataset_name, "lightgreen", ylabel="Time (s)")
-plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Time (s)")
+plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Space (MB)")
 plot_results_improved(results, "Precision", dataset_name, "gold")
 plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
 
