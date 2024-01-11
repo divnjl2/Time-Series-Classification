@@ -241,7 +241,7 @@ plt.show()
 def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name=dataset_name):
     plt.figure(figsize=(10, 8))
 
-    colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'lime', 'yellow', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine', 'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine', 'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
 
     for (classifier_name, color) in zip(classifiers, colors):
         fpr = fpr_dict[classifier_name]
@@ -314,12 +314,12 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
     plt.show()
 
 # Apply the improved plotting function for each metric you want to plot
-plot_results_improved(results, "Accuracy", dataset_name, "skyblue")
-plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "lightcoral")
-plot_results_improved(results, "Execution Time", dataset_name, "lightgreen", ylabel="Time (s)")
-plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Space (MB)")
-plot_results_improved(results, "Precision", dataset_name, "gold")
-plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
+plot_results_improved(results, "Accuracy", dataset_name, "chocolate")
+plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "saddlebrown")
+plot_results_improved(results, "Execution Time", dataset_name, "sandybrown", ylabel="Time (s)")
+plot_results_improved(results, "Memory Usage", dataset_name, "peachpuff", ylabel="Space (MB)")
+plot_results_improved(results, "Precision", dataset_name, "peru")
+plot_results_improved(results, "F1 Score", dataset_name, "sienna")
 
 
 # Plot confusion matrices together
