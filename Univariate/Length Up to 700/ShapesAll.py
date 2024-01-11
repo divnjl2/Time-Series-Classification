@@ -1,9 +1,6 @@
 ### Dataset: ShapesAll, Dimensions: 1, Length:	512, Train Size: 600, Test Size: 600, Classes: 60 ###
 
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
-from tslearn.preprocessing import TimeSeriesScalerMinMax
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
@@ -13,11 +10,10 @@ from sklearn.metrics import precision_score, f1_score, roc_auc_score
 import time
 from sklearn.preprocessing import label_binarize
 from collections import Counter
-import seaborn as sns
 from memory_profiler import memory_usage
 from imblearn.over_sampling import RandomOverSampler
 from itertools import cycle
-from scipy import interp
+
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
