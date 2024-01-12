@@ -1,4 +1,4 @@
-### Dataset: BasicMotions, Dimensions: 6, Length: 100, Train Size: 40, Test Size: 40, Classes: 4, Type: HAR ###
+### Dataset: Handwriting, Dimensions: 3, Length: 152, Train Size: 150, Test Size: 850, Classes: 26, Type: HAR ###
 
 
 import numpy as np
@@ -20,11 +20,10 @@ from aeon.classification.deep_learning.fcn import FCNClassifier
 from sktime.classification.deep_learning.mcdcnn import MCDCNNClassifier
 
 # Dictionary-based:
-from aeon.classification.dictionary_based import (BOSSEnsemble, ContractableBOSS, IndividualBOSS,
-                                                  TemporalDictionaryEnsemble, IndividualTDE, WEASEL, MUSE)
+from aeon.classification.dictionary_based import (TemporalDictionaryEnsemble, IndividualTDE, MUSE)
 
 # Distance-based:
-from aeon.classification.distance_based import ShapeDTW, KNeighborsTimeSeriesClassifier
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
 # Feature-based:
 from aeon.classification.feature_based import Catch22Classifier, FreshPRINCEClassifier
@@ -37,13 +36,11 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
-
-
-dataset_name = "BasicMotions"  # Change this to match your dataset name
+dataset_name = "Handwriting"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("BasicMotions", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("BasicMotions", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("Handwriting", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("Handwriting", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -224,6 +221,8 @@ def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_c
 
     colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan'])
 
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen'])
+
     for (classifier_name, color) in zip(classifiers, colors):
         fpr = fpr_dict[classifier_name]
         tpr = tpr_dict[classifier_name]
@@ -293,13 +292,14 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
     plt.savefig(f"{dataset_name}_{metric}.png", bbox_inches='tight')
     plt.show()
 
+
 # Apply the improved plotting function for each metric you want to plot
-plot_results_improved(results, "Accuracy", dataset_name, "skyblue")
-plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "lightcoral")
-plot_results_improved(results, "Execution Time", dataset_name, "lightgreen", ylabel="Time (s)")
-plot_results_improved(results, "Memory Usage", dataset_name, "purple", ylabel="Space (MB)")
-plot_results_improved(results, "Precision", dataset_name, "gold")
-plot_results_improved(results, "F1 Score", dataset_name, "lightcoral")
+plot_results_improved(results, "Accuracy", dataset_name, "chocolate")
+plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "saddlebrown")
+plot_results_improved(results, "Execution Time", dataset_name, "sandybrown", ylabel="Time (s)")
+plot_results_improved(results, "Memory Usage", dataset_name, "peachpuff", ylabel="Space (MB)")
+plot_results_improved(results, "Precision", dataset_name, "peru")
+plot_results_improved(results, "F1 Score", dataset_name, "sienna")
 
 
 # Plot confusion matrices together
@@ -310,7 +310,7 @@ num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
     plt.subplot(num_rows, num_cols, i + 1)
-    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Blues)
+    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Oranges)
     plt.title(f'{classifier_name}')
     plt.colorbar()
     plt.xlabel('Predicted Labels')
