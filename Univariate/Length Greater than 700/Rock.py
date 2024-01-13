@@ -1,4 +1,4 @@
-### Dataset: StandWalkJump, Dimensions: 1, Length:	2500, Train Size: 12, Test Size: 15, Classes: 3 ###
+### Dataset: Rock, Dimensions: 1, Length:	2844, Train Size: 20, Test Size: 50, Classes: 4, Type: Spectro ###
 
 
 import numpy as np
@@ -39,11 +39,11 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "StandWalkJump"  # Change this to match your dataset name
+dataset_name = "Rock"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("StandWalkJump", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("StandWalkJump", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("Rock", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("Rock", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
