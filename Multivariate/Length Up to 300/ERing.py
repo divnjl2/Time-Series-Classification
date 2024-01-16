@@ -1,4 +1,4 @@
-### Dataset: ShapesAll, Dimensions: 1, Length:	512, Train Size: 600, Test Size: 600, Classes: 60 ###
+### Dataset: ERing, Dimensions: 4, Length: 65, Train Size: 30, Test Size: 270, Classes: 6, Type: HAR ###
 
 
 import numpy as np
@@ -11,9 +11,7 @@ import time
 from sklearn.preprocessing import label_binarize
 from collections import Counter
 from memory_profiler import memory_usage
-from imblearn.over_sampling import RandomOverSampler
 from itertools import cycle
-
 
 # Deep Learning:
 from aeon.classification.deep_learning.mlp import MLPClassifier
@@ -22,11 +20,10 @@ from aeon.classification.deep_learning.fcn import FCNClassifier
 from sktime.classification.deep_learning.mcdcnn import MCDCNNClassifier
 
 # Dictionary-based:
-from aeon.classification.dictionary_based import (BOSSEnsemble, ContractableBOSS, IndividualBOSS,
-                                                  TemporalDictionaryEnsemble, IndividualTDE, WEASEL, MUSE)
+from aeon.classification.dictionary_based import (TemporalDictionaryEnsemble, IndividualTDE, MUSE)
 
 # Distance-based:
-from aeon.classification.distance_based import ShapeDTW, KNeighborsTimeSeriesClassifier
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
 # Feature-based:
 from aeon.classification.feature_based import Catch22Classifier, FreshPRINCEClassifier
@@ -40,11 +37,11 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "ShapesAll"  # Change this to match your dataset name
+dataset_name = "ERing"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("ShapesAll", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("ShapesAll", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("ERing", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("ERing", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -54,58 +51,43 @@ print("Training set class distribution:", Counter(y_train))
 print("Test set class distribution:", Counter(y_test))
 
 
-# Function to convert DataFrame to 2D numpy array
-def dataframe_to_2darray(df):
+# Function to convert DataFrame to 3D numpy array (for multivariate time series)
+def dataframe_to_3darray(df):
     num_samples = df.shape[0]
-    num_timesteps = len(df.iloc[0, 0])
-    array_2d = np.empty((num_samples, num_timesteps))
+    num_channels = df.shape[1]
+    num_timesteps = df.iloc[0, 0].shape[0]
+    array_3d = np.empty((num_samples, num_channels, num_timesteps))
 
     for i in range(num_samples):
-        array_2d[i, :] = df.iloc[i, 0]
+        for c in range(num_channels):
+            array_3d[i, c, :] = df.iloc[i, c]
 
-    return array_2d
+    return array_3d
 
 
-# Convert and preprocess the data
+# Convert and preprocess the data (maintaining multivariate structure)
 scaler = TimeSeriesScalerMinMax()
-X_train_processed = scaler.fit_transform(dataframe_to_2darray(X_train_raw))
-X_test_processed = scaler.transform(dataframe_to_2darray(X_test_raw))  # Use the same scaler to transform test data
-
-# Flatten each time series into a one-dimensional array for classifiers that require flat features
-X_train_flat = X_train_processed.reshape((X_train_processed.shape[0], -1))
-X_test_flat = X_test_processed.reshape((X_test_processed.shape[0], -1))
-
-
-# Check for class imbalance
-class_distribution = Counter(y_train)
-min_class_size = min(class_distribution.values())
-max_class_size = max(class_distribution.values())
-imbalance_ratio = min_class_size / max_class_size
-imbalance_threshold = 0.5
-
-# Flag to indicate whether resampling was done
-resampling_done = False
-
-# Initialize resampled data with original data
-X_train_flat_resampled, y_train_resampled = X_train_flat, y_train
-
-# Apply oversampling if there is class imbalance
-if imbalance_ratio < imbalance_threshold:
-    print("Class imbalance detected. Applying RandomOverSampler...")
-    ros = RandomOverSampler(random_state=0)
-    X_train_flat_resampled, y_train_resampled = ros.fit_resample(X_train_flat, y_train)
-    resampling_done = True
+X_train_processed = scaler.fit_transform(dataframe_to_3darray(X_train_raw))
+X_test_processed = scaler.transform(dataframe_to_3darray(X_test_raw))
 
 
 # Define a list of classifiers
-classifiers = [MLPClassifier(), CNNClassifier(), FCNClassifier(), MCDCNNClassifier(),
-               BOSSEnsemble(feature_selection='random'),ContractableBOSS(feature_selection='random'),
-               IndividualBOSS(feature_selection='random'), TemporalDictionaryEnsemble(),IndividualTDE(),
-               WEASEL(support_probabilities=True,feature_selection='random'),
-               MUSE(support_probabilities=True, feature_selection='random'),
-               ShapeDTW(), KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
-               SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
-               CanonicalIntervalForestClassifier(), DrCIFClassifier(), RocketClassifier(), Arsenal()]
+classifiers = [MLPClassifier(),
+               CNNClassifier(),
+               FCNClassifier(),
+               MCDCNNClassifier(),
+               TemporalDictionaryEnsemble(),
+               IndividualTDE(),
+               MUSE(support_probabilities=True),
+               KNeighborsTimeSeriesClassifier(),
+               Catch22Classifier(),
+               FreshPRINCEClassifier(),
+               SupervisedTimeSeriesForest(),
+               TimeSeriesForestClassifier(),
+               CanonicalIntervalForestClassifier(),
+               DrCIFClassifier(),
+               RocketClassifier(),
+               Arsenal()]
 
 # Initialize lists to store results
 results = {"Classifier": [], "Execution Time": [], "Memory Usage": [], "Precision": [], "Accuracy": [],
@@ -151,14 +133,8 @@ roc_auc_dict = {}
 # Evaluate each classifier
 for classifier in classifiers:
     classifier_name = type(classifier).__name__
-    # Use the resampled data if resampling was done, else use the original data
-    if resampling_done:
-        exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_flat, X_test_flat, y_train, y_test)
-
-    else:
-        exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
-            evaluate_classifier(classifier, X_train_flat_resampled, X_test_flat, y_train_resampled, y_test)
+    exec_time, max_mem_usage, precision, accuracy, f1_score_val, roc_auc_macro, roc_auc_micro, confusion = \
+        evaluate_classifier(classifier, X_train_processed, X_test_processed, y_train, y_test)
 
 
     results["Classifier"].append(classifier_name)
@@ -182,7 +158,7 @@ for classifier in classifiers:
 
 
     if hasattr(classifier, "predict_proba"):
-        y_prob = classifier.predict_proba(X_test_flat)
+        y_prob = classifier.predict_proba(X_test_processed)
         y_test_bin = label_binarize(y_test, classes=np.unique(y_train))
         n_classes = y_test_bin.shape[1]
 
@@ -199,6 +175,7 @@ for classifier in classifiers:
 
 
 # Plot ROC-AUC Curves
+
 # Define the number of columns and rows you want
 num_cols = 4  # Fewer columns
 num_rows = 6  # More rows to accommodate all classifiers, assuming 21 classifiers
@@ -243,7 +220,9 @@ plt.show()
 def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name=dataset_name):
     plt.figure(figsize=(10, 8))
 
-    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine', 'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
+    colors = cycle(['blue', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan'])
+
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen'])
 
     for (classifier_name, color) in zip(classifiers, colors):
         fpr = fpr_dict[classifier_name]
@@ -282,7 +261,6 @@ def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_c
 # Call the function with the appropriate parameters
 plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, results["Classifier"], n_classes)
 
-
 # Function to plot results
 def plot_results(results, metric, title, color):
     plt.figure(figsize=(10, 6))
@@ -315,6 +293,7 @@ def plot_results_improved(results, metric, dataset_name, color, ylabel=None):
     plt.savefig(f"{dataset_name}_{metric}.png", bbox_inches='tight')
     plt.show()
 
+
 # Apply the improved plotting function for each metric you want to plot
 plot_results_improved(results, "Accuracy", dataset_name, "chocolate")
 plot_results_improved(results, "ROC-AUC Score (Macro)", dataset_name, "saddlebrown")
@@ -326,7 +305,7 @@ plot_results_improved(results, "F1 Score", dataset_name, "sienna")
 
 # Plot confusion matrices together
 num_classifiers = len(results["Classifier"])
-num_cols = 7
+num_cols = 6
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
