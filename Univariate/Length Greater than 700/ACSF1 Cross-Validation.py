@@ -41,11 +41,11 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "dataset's_name"  # Change this to match your dataset name
+dataset_name = "ACSF1"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("dataset's_name", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("dataset's_name", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("ACSF1", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("ACSF1", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
