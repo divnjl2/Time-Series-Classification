@@ -280,7 +280,7 @@ def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_c
     filename = f"{dataset_name}_macro_average_roc_curve.png"
     plt.savefig(filename)
     plt.show()
-    plt.close()  # Close the figure to free memory
+    plt.close()
 
 # Call the function with the appropriate parameters
 plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, results["Classifier"], n_classes)
