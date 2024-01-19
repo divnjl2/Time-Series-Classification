@@ -100,10 +100,10 @@ if imbalance_ratio < imbalance_threshold:
 
 # Define a list of classifiers
 classifiers = [MLPClassifier(), CNNClassifier(), FCNClassifier(), MCDCNNClassifier(),
-               BOSSEnsemble(feature_selection='random'),ContractableBOSS(feature_selection='random'),
-               IndividualBOSS(feature_selection='random'), TemporalDictionaryEnsemble(),IndividualTDE(),
-               WEASEL(support_probabilities=True,feature_selection='random'),
-               MUSE(support_probabilities=True, feature_selection='random'),
+               BOSSEnsemble(),ContractableBOSS(),
+               IndividualBOSS(), TemporalDictionaryEnsemble(),IndividualTDE(),
+               WEASEL(support_probabilities=True),
+               MUSE(support_probabilities=True),
                ShapeDTW(), KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
                SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
                CanonicalIntervalForestClassifier(), DrCIFClassifier(), RocketClassifier(), Arsenal()]
@@ -114,10 +114,6 @@ results = {"Classifier": [], "Execution Time": [], "Memory Usage": [], "Precisio
 
 n_folds = 3
 
-# Function to evaluate classifier
-# The rest of your code remains unchanged until the `evaluate_classifier_kfold` function
-
-# Function to evaluate classifier with memory and execution time profiling
 def evaluate_classifier_kfold(classifier, X, y, n_folds=3):
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
     accuracies = []
@@ -127,31 +123,35 @@ def evaluate_classifier_kfold(classifier, X, y, n_folds=3):
     roc_auc_micros = []
     execution_times = []
     memory_usages = []
+    confusion_matrices = []
 
     for train_index, test_index in kf.split(X):
         X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+        y_train_kf, y_test_kf = y[train_index], y[test_index]
 
         # Measure execution time and memory usage
         start_time = time.time()
-        mem_usage = memory_usage((classifier.fit, (X_train, y_train)), interval=0.1, include_children=True)
+        mem_usage = memory_usage((classifier.fit, (X_train, y_train_kf)), interval=0.1, include_children=True)
         execution_time = time.time() - start_time
         max_mem_usage = max(mem_usage) - min(mem_usage)
 
         predictions = classifier.predict(X_test)
+        confusion = confusion_matrix(y_test_kf, predictions)
+        confusion_matrices.append(confusion)
 
         execution_times.append(execution_time)
         memory_usages.append(max_mem_usage)
-        accuracies.append(accuracy_score(y_test, predictions))
-        precisions.append(precision_score(y_test, predictions, average='weighted'))
-        f1_scores.append(f1_score(y_test, predictions, average='weighted'))
+        accuracies.append(accuracy_score(y_test_kf, predictions))
+        precisions.append(precision_score(y_test_kf, predictions, average='weighted', zero_division=0))
+        f1_scores.append(f1_score(y_test_kf, predictions, average='weighted'))
 
         if hasattr(classifier, "predict_proba"):
             y_prob = classifier.predict_proba(X_test)
-            roc_auc_macros.append(roc_auc_score(y_test, y_prob, multi_class='ovr', average='macro'))
-            roc_auc_micros.append(roc_auc_score(y_test, y_prob, multi_class='ovr', average='micro'))
+            roc_auc_macros.append(roc_auc_score(y_test_kf, y_prob, multi_class='ovr', average='macro'))
+            roc_auc_micros.append(roc_auc_score(y_test_kf, y_prob, multi_class='ovr', average='micro'))
 
     # Average results from all folds
+    avg_confusion_matrix = np.mean(confusion_matrices, axis=0)
     avg_execution_time = np.mean(execution_times)
     avg_memory_usage = np.mean(memory_usages)
     avg_accuracy = np.mean(accuracies)
@@ -160,7 +160,7 @@ def evaluate_classifier_kfold(classifier, X, y, n_folds=3):
     avg_roc_auc_macro = np.mean(roc_auc_macros) if roc_auc_macros else None
     avg_roc_auc_micro = np.mean(roc_auc_micros) if roc_auc_micros else None
 
-    return avg_execution_time, avg_memory_usage, avg_accuracy, avg_precision, avg_f1_score, avg_roc_auc_macro, avg_roc_auc_micro
+    return avg_confusion_matrix, avg_execution_time, avg_memory_usage, avg_accuracy, avg_precision, avg_f1_score, avg_roc_auc_macro, avg_roc_auc_micro
 
 # Initialize dictionaries
 fpr_dict = {}
@@ -364,3 +364,30 @@ for classifier in results["Classifier"]:
     print(f"  Precision: {results['Precision'][index]:.4f}")
     print(f"  F1 Score: {results['F1 Score'][index]:.4f}")
     print(f"  ROC-AUC Score (Macro): {results['ROC-AUC Score (Macro)'][index]:.4f}\n")
+
+
+# Plot confusion matrices together
+num_classifiers = len(results["Classifier"])
+num_cols = 7
+num_rows = -(-num_classifiers // num_cols)  # Ceiling division
+
+plt.figure(figsize=(20, 4 * num_rows))
+for i, classifier_name in enumerate(results["Classifier"]):
+    plt.subplot(num_rows, num_cols, i + 1)
+    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Oranges)
+    plt.title(f'{classifier_name}')
+    plt.colorbar()
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    tick_marks = np.arange(len(np.unique(y_train)))
+    plt.xticks(tick_marks, tick_marks, rotation=45)
+    plt.yticks(tick_marks, tick_marks)
+
+# Adjust the spacing of the subplots to make room for the suptitle
+plt.subplots_adjust(top=0.85)  # You may need to adjust this value
+plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
+
+# Save the figure with enough room for the suptitle
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
+plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
+plt.show()
