@@ -1,5 +1,3 @@
-### Dataset: ACSF1, Dimensions: 1, Length:	1460, Train Size: 100, Test Size: 100, Classes: 10 ###
-
 
 import numpy as np
 import matplotlib.pyplot as plt
