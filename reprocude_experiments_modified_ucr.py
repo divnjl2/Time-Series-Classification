@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import RidgeClassifierCV
-from rocket_modified_functions import generate_kernels, transform_and_select_features
+from r_modified_functions import generate_kernels, transform_and_select_features
 from sktime.datasets import load_UCR_UEA_dataset
 import time
 
