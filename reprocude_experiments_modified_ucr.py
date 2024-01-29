@@ -79,7 +79,6 @@ dataset_names = ["Adiac",
     "UWaveGestureLibraryAll",
     "Wafer",
     "Wine",
-    "WordSynonyms",
     "Worms",
     "WormsTwoClass",
     "Yoga"]
