@@ -79,12 +79,13 @@ def transform_and_select_features(X, kernels, y=None, num_features=None, selecto
 
 @njit
 def generate_kernels(input_length, num_kernels, avg_series_length):
-    if avg_series_length < 50:
+    """if avg_series_length < 50:
         candidate_lengths = np.array((3, 5, 7), dtype=np.int32)
     elif avg_series_length < 200:
         candidate_lengths = np.array((5, 7, 11), dtype=np.int32)
     else:
-        candidate_lengths = np.array((10, 15, 20), dtype=np.int32)
+        candidate_lengths = np.array((10, 15, 20), dtype=np.int32)"""
+    candidate_lengths = np.array((5, 7, 9), dtype=np.int32)
 
     lengths = np.random.choice(candidate_lengths, num_kernels)
     weights = np.zeros(lengths.sum(), dtype=np.float64)

@@ -5,7 +5,7 @@ from r_modified_functions import generate_kernels, transform_and_select_features
 from sktime.datasets import load_UCR_UEA_dataset
 import time
 
-dataset_names = ["Adiac",
+"""dataset_names = ["Adiac",
     "ArrowHead",
     "Beef",
     "BeetleFly",
@@ -81,8 +81,10 @@ dataset_names = ["Adiac",
     "Wine",
     "Worms",
     "WormsTwoClass",
-    "Yoga"]
+    "Yoga"]"""
 
+
+dataset_names=["ArrowHead", "WordSynonyms", "FiftyWords","Car","CricketX","ShapesAll", "Rock", "ACSF1"]
 results = []
 for dataset_name in dataset_names:
     print(f"Processing dataset: {dataset_name}")
@@ -97,23 +99,24 @@ for dataset_name in dataset_names:
 
     avg_series_length = np.mean([len(x) for x in X_train])
 
-    # Generate kernels
+    # Start time measurement for train transformation
+    start_time = time.time()
     kernels = generate_kernels(X_train.shape[1], 10000, int(avg_series_length))
-
-    # Transform and select features for training set
-    X_train_transformed, selector, best_num_features, scaler = transform_and_select_features(X_train, kernels, y_train, is_train=True)
-
-    # Transform and select features for test set using the same selector
-    X_test_transformed = transform_and_select_features(X_test, kernels, selector=selector, scaler=scaler,
-                                                       is_train=False)
-
-    # Classifier
-    classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+    X_train_transformed, selector, best_num_features, scaler = transform_and_select_features(X_train, kernels, y_train,
+                                                                                             is_train=True)
+    train_transform_time = time.time() - start_time
 
     # Train classifier
     start_time = time.time()
+    classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
     classifier.fit(X_train_transformed, y_train)
     training_time = time.time() - start_time
+
+    # Start time measurement for test transformation
+    start_time = time.time()
+    X_test_transformed = transform_and_select_features(X_test, kernels, selector=selector, scaler=scaler,
+                                                       is_train=False)
+    test_transform_time = time.time() - start_time
 
     # Test classifier
     start_time = time.time()
@@ -124,12 +127,31 @@ for dataset_name in dataset_names:
     results.append({
         "Dataset": dataset_name,
         "Accuracy": accuracy,
-        "Training Transformation Time": time.time() - start_time,
+        "Training Transformation Time": train_transform_time,
         "Training Time": training_time,
+        "Test Transformation Time": test_transform_time,  # Added test transformation time
         "Test Time": test_time,
     })
 
-    print(f"Dataset: {dataset_name}, Accuracy: {accuracy}")
-    print(f"Training Transformation Time: {time.time() - start_time}s")
-    print(f"Training Time: {training_time}s, Test Time: {test_time}s")
-    print("=" * 50)
+    # Modified print statements to match the second script
+    print(f"Dataset: {dataset_name}")
+    print(f"Accuracy: {accuracy}")
+    print(f"Training Transformation Time: {train_transform_time}s")
+    print(f"Training Time: {training_time}s")
+    print(f"Test Transformation Time: {test_transform_time}s")  # Print test transformation time
+    print(f"Test Time: {test_time}s")
+    print("=" * 50)  # Separator for different datasets
+
+# After processing all datasets, calculate the average accuracy and average time
+average_accuracy = np.mean([result['Accuracy'] for result in results])
+average_total_time = np.mean([
+    result['Training Transformation Time'] +
+    result['Training Time'] +
+    result['Test Transformation Time'] +
+    result['Test Time']
+    for result in results
+])
+
+# Print the results
+print(f'Average Accuracy: {average_accuracy}')
+print(f'Average Total Time (Training Transformation + Training + Test Transformation + Test): {average_total_time}')
