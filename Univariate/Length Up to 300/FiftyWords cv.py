@@ -12,6 +12,8 @@ from memory_profiler import memory_usage
 from imblearn.over_sampling import RandomOverSampler
 from itertools import cycle
 from sklearn.model_selection import TimeSeriesSplit
+import pandas as pd
+
 
 
 # Deep Learning:
@@ -389,3 +391,13 @@ plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
 plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
+
+
+# Convert the results dictionary to a DataFrame
+results_df = pd.DataFrame(results)
+
+# Save the DataFrame to a CSV file
+csv_filename = f"{dataset_name}_classification_results_tss.csv"
+results_df.to_csv(csv_filename, index=False)
+
+print(f"Results have been saved to '{csv_filename}'")
