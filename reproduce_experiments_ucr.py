@@ -30,7 +30,10 @@ dataset_names = ["Adiac",
     "ECG200",
     "ECGFiveDays",
     "ElectricDevices",
-    "FaceAll",
+]
+
+
+""""FaceAll",
     "FacesUCR",
     "Fish",
     "FordA",
@@ -85,8 +88,7 @@ dataset_names = ["Adiac",
     "Wine",
     "Worms",
     "WormsTwoClass",
-    "Yoga"]
-
+    "Yoga" """
 # Loop over each dataset
 for dataset_name in dataset_names:
     print(f"Processing dataset: {dataset_name}")

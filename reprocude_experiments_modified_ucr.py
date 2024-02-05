@@ -5,7 +5,9 @@ from r_modified_functions import generate_kernels, transform_and_select_features
 from sktime.datasets import load_UCR_UEA_dataset
 import time
 
-"""dataset_names = ["Adiac",
+
+# Define a list of dataset names
+dataset_names = ["Adiac",
     "ArrowHead",
     "Beef",
     "BeetleFly",
@@ -26,7 +28,9 @@ import time
     "ECG200",
     "ECGFiveDays",
     "ElectricDevices",
-    "FaceAll",
+]
+
+""""FaceAll",
     "FacesUCR",
     "Fish",
     "FordA",
@@ -81,10 +85,9 @@ import time
     "Wine",
     "Worms",
     "WormsTwoClass",
-    "Yoga"]"""
+    "Yoga" """
 
 
-dataset_names=["ArrowHead", "WordSynonyms", "FiftyWords","Car","CricketX","ShapesAll", "Rock", "ACSF1"]
 results = []
 for dataset_name in dataset_names:
     print(f"Processing dataset: {dataset_name}")
