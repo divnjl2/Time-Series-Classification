@@ -30,6 +30,62 @@ dataset_names = ["Adiac",
     "ECG200",
     "ECGFiveDays",
     "ElectricDevices",
+"FaceAll",
+    "FacesUCR",
+    "Fish",
+    "FordA",
+    "FordB",
+    "GunPoint",
+    "Ham",
+    "HandOutlines",
+    "Haptics",
+    "Herring",
+    "InlineSkate",
+    "InsectWingbeatSound",
+    "ItalyPowerDemand",
+    "LargeKitchenAppliances",
+    "Lightning2",
+    "Lightning7",
+    "Meat",
+    "MedicalImages",
+    "MiddlePhalanxOutlineCorrect",
+    "MiddlePhalanxOutlineAgeGroup",
+    "MiddlePhalanxTW",
+    "MoteStrain",
+    "NonInvasiveFetalECGThorax1",
+    "NonInvasiveFetalECGThorax2",
+    "OliveOil",
+    "OSULeaf",
+    "PhalangesOutlinesCorrect",
+    "Plane",
+    "ProximalPhalanxOutlineCorrect",
+    "ProximalPhalanxOutlineAgeGroup",
+    "ProximalPhalanxTW",
+    "RefrigerationDevices",
+    "ScreenType",
+    "ShapeletSim",
+    "ShapesAll",
+    "SmallKitchenAppliances",
+    "SonyAIBORobotSurface1",
+    "SonyAIBORobotSurface2",
+    "StarLightCurves",
+    "Strawberry",
+    "SwedishLeaf",
+    "SyntheticControl",
+    "ToeSegmentation1",
+    "ToeSegmentation2",
+    "Trace",
+    "TwoLeadECG",
+    "TwoPatterns",
+    "UWaveGestureLibraryX",
+    "UWaveGestureLibraryY",
+    "UWaveGestureLibraryZ",
+    "UWaveGestureLibraryAll",
+    "Wafer",
+    "Wine",
+    "Worms",
+    "WormsTwoClass",
+    "Yoga"
 ]
 
 
@@ -89,6 +145,9 @@ dataset_names = ["Adiac",
     "Worms",
     "WormsTwoClass",
     "Yoga" """
+
+total_start_time=time.time()
+
 # Loop over each dataset
 for dataset_name in dataset_names:
     print(f"Processing dataset: {dataset_name}")
@@ -163,3 +222,6 @@ average_total_time = np.mean([
 # Print the results
 print(f'Average Accuracy: {average_accuracy}')
 print(f'Average Total Time (Training Transformation + Training + Test Transformation + Test): {average_total_time}')
+
+total_time = time.time() - total_start_time
+print(total_time)

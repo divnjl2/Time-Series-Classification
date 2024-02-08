@@ -28,6 +28,62 @@ dataset_names = ["Adiac",
     "ECG200",
     "ECGFiveDays",
     "ElectricDevices",
+    "FaceAll",
+    "FacesUCR",
+    "Fish",
+    "FordA",
+    "FordB",
+    "GunPoint",
+    "Ham",
+    "HandOutlines",
+    "Haptics",
+    "Herring",
+    "InlineSkate",
+    "InsectWingbeatSound",
+    "ItalyPowerDemand",
+    "LargeKitchenAppliances",
+    "Lightning2",
+    "Lightning7",
+    "Meat",
+    "MedicalImages",
+    "MiddlePhalanxOutlineCorrect",
+    "MiddlePhalanxOutlineAgeGroup",
+    "MiddlePhalanxTW",
+    "MoteStrain",
+    "NonInvasiveFetalECGThorax1",
+    "NonInvasiveFetalECGThorax2",
+    "OliveOil",
+    "OSULeaf",
+    "PhalangesOutlinesCorrect",
+    "Plane",
+    "ProximalPhalanxOutlineCorrect",
+    "ProximalPhalanxOutlineAgeGroup",
+    "ProximalPhalanxTW",
+    "RefrigerationDevices",
+    "ScreenType",
+    "ShapeletSim",
+    "ShapesAll",
+    "SmallKitchenAppliances",
+    "SonyAIBORobotSurface1",
+    "SonyAIBORobotSurface2",
+    "StarLightCurves",
+    "Strawberry",
+    "SwedishLeaf",
+    "SyntheticControl",
+    "ToeSegmentation1",
+    "ToeSegmentation2",
+    "Trace",
+    "TwoLeadECG",
+    "TwoPatterns",
+    "UWaveGestureLibraryX",
+    "UWaveGestureLibraryY",
+    "UWaveGestureLibraryZ",
+    "UWaveGestureLibraryAll",
+    "Wafer",
+    "Wine",
+    "Worms",
+    "WormsTwoClass",
+    "Yoga"
 ]
 
 """"FaceAll",
@@ -87,7 +143,7 @@ dataset_names = ["Adiac",
     "WormsTwoClass",
     "Yoga" """
 
-
+total_start_time = time.time()
 results = []
 for dataset_name in dataset_names:
     print(f"Processing dataset: {dataset_name}")
@@ -130,18 +186,20 @@ for dataset_name in dataset_names:
     results.append({
         "Dataset": dataset_name,
         "Accuracy": accuracy,
+        "Num Features": best_num_features,  # Added number of features used
         "Training Transformation Time": train_transform_time,
         "Training Time": training_time,
-        "Test Transformation Time": test_transform_time,  # Added test transformation time
+        "Test Transformation Time": test_transform_time,
         "Test Time": test_time,
     })
 
-    # Modified print statements to match the second script
+    # Print the results
     print(f"Dataset: {dataset_name}")
     print(f"Accuracy: {accuracy}")
+    print(f"Number of Features: {best_num_features}")  # Print number of features used
     print(f"Training Transformation Time: {train_transform_time}s")
     print(f"Training Time: {training_time}s")
-    print(f"Test Transformation Time: {test_transform_time}s")  # Print test transformation time
+    print(f"Test Transformation Time: {test_transform_time}s")
     print(f"Test Time: {test_time}s")
     print("=" * 50)  # Separator for different datasets
 
@@ -158,3 +216,9 @@ average_total_time = np.mean([
 # Print the results
 print(f'Average Accuracy: {average_accuracy}')
 print(f'Average Total Time (Training Transformation + Training + Test Transformation + Test): {average_total_time}')
+
+total_time = time.time() - total_start_time
+print(total_time)
+
+
+

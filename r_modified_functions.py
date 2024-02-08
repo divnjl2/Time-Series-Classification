@@ -1,28 +1,38 @@
 import numpy as np
 from numba import njit, prange
-from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.linear_model import RidgeClassifierCV
 
 
+
+
 def select_features(X, y, num_features):
-    """
-    Performs feature selection on the transformed dataset.
-    Args:
-    - X: Transformed dataset.
-    - y: Target labels.
-    - num_features: Number of features to select.
-    Returns:
-    - X_selected: Dataset with selected features.
-    - selector: The fitted SelectKBest object for transforming other datasets.
-    """
+
+    #Performs feature selection on the transformed dataset.
+    #Args:
+    #- X: Transformed dataset.
+    #- y: Target labels.
+    #- num_features: Number of features to select.
+    #Returns:
+    #- X_selected: Dataset with selected features.
+    #- selector: The fitted SelectKBest object for transforming other datasets.
+
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
 
     selector = SelectKBest(chi2, k=num_features)
     X_selected = selector.fit_transform(X_scaled, y)
     return X_selected, selector, scaler
+
+
+"""def select_features(X, y, num_features):
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+    selector = SelectKBest(mutual_info_classif, k=num_features) 
+    X_selected = selector.fit_transform(X_scaled, y)
+    return X_selected, selector, scaler"""
 
 
 def transform_and_select_features(X, kernels, y=None, num_features=None, selector=None, scaler=None, is_train=True):
@@ -79,14 +89,9 @@ def transform_and_select_features(X, kernels, y=None, num_features=None, selecto
 
 @njit
 def generate_kernels(input_length, num_kernels, avg_series_length):
-    """if avg_series_length < 50:
-        candidate_lengths = np.array((3, 5, 7), dtype=np.int32)
-    elif avg_series_length < 200:
-        candidate_lengths = np.array((5, 7, 11), dtype=np.int32)
-    else:
-        candidate_lengths = np.array((10, 15, 20), dtype=np.int32)"""
-    candidate_lengths = np.array((5, 7, 9), dtype=np.int32)
-
+    # Dynamically select candidate lengths based on average series length
+    candidate_lengths =  np.array((10, 15, 20), dtype=np.int32)
+    #candidate_lengths = np.array((7, 9, 11), dtype=np.int32) if avg_series_length < 200 else np.array((10, 15, 20), dtype=np.int32)
     lengths = np.random.choice(candidate_lengths, num_kernels)
     weights = np.zeros(lengths.sum(), dtype=np.float64)
     biases = np.zeros(num_kernels, dtype=np.float64)
@@ -96,14 +101,14 @@ def generate_kernels(input_length, num_kernels, avg_series_length):
     a1 = 0
     for i in range(num_kernels):
         _length = lengths[i]
-        _weights = np.random.normal(0, 1, _length)
+        _weights = np.random.normal(0, 1, _length) # Weights sampled from a normal distribution
         b1 = a1 + _length
-        weights[a1:b1] = _weights - _weights.mean()
-        biases[i] = np.random.uniform(-1, 1)
+        weights[a1:b1] = _weights - _weights.mean() # Mean-centering the weights
+        biases[i] = np.random.uniform(-1, 1) # Bias sampled from a uniform distribution
         dilation = 2 ** np.random.uniform(0, np.log2((input_length - 1) / (_length - 1)))
-        dilations[i] = np.int32(dilation)
+        dilations[i] = np.int32(dilation) # Dilation determined through exponential sampling
         padding = ((_length - 1) * dilation) // 2 if np.random.randint(2) == 1 else 0
-        paddings[i] = padding
+        paddings[i] = padding # Padding applied based on a random decision
         a1 = b1
 
     return weights, lengths, biases, dilations, paddings
