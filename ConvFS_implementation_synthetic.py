@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import RidgeClassifierCV
-from r_modified_functions import generate_kernels, transform_and_select_features
+from ConvFS_functions import generate_kernels, transform_and_select_features
 import time
 from generate_synthetic_data import generate_random_time_series
 
