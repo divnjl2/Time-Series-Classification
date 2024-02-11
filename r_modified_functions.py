@@ -6,43 +6,14 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.linear_model import RidgeClassifierCV
 
 
-
-
-def select_features(X, y, num_features):
-
-    #Performs feature selection on the transformed dataset.
-    #Args:
-    #- X: Transformed dataset.
-    #- y: Target labels.
-    #- num_features: Number of features to select.
-    #Returns:
-    #- X_selected: Dataset with selected features.
-    #- selector: The fitted SelectKBest object for transforming other datasets.
-
-    scaler = MinMaxScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    selector = SelectKBest(chi2, k=num_features)
-    X_selected = selector.fit_transform(X_scaled, y)
-    return X_selected, selector, scaler
-
-
-"""def select_features(X, y, num_features):
-    scaler = MinMaxScaler()
-    X_scaled = scaler.fit_transform(X)
-    selector = SelectKBest(mutual_info_classif, k=num_features) 
-    X_selected = selector.fit_transform(X_scaled, y)
-    return X_selected, selector, scaler"""
-
-
-def transform_and_select_features(X, kernels, y=None, num_features=None, selector=None, scaler=None, is_train=True):
+def transform_and_select_features(X, kernels, y=None, num_features=500, selector=None, scaler=None, is_train=True):
     """
-    Transforms the dataset using kernels and performs dynamic feature selection.
+    Transforms the dataset using kernels and performs feature selection.
     Args:
     - X: Dataset to be transformed.
     - kernels: Pre-generated kernels.
     - y: Target labels (required for training set).
-    - num_features: Number of features to select (optional, used for training set).
+    - num_features: Number of features to select (fixed, based on prior knowledge).
     - selector: The fitted SelectKBest object (required for test set).
     - scaler: The MinMaxScaler object (required for test set).
     - is_train: Boolean indicating if the dataset is a training set.
@@ -54,43 +25,30 @@ def transform_and_select_features(X, kernels, y=None, num_features=None, selecto
     X_transformed = apply_kernels(X, kernels)
 
     if is_train:
+        # Scale the transformed data
         scaler = MinMaxScaler()
         X_scaled = scaler.fit_transform(X_transformed)
 
-        best_accuracy = 0
-        best_num_features = 0
-        best_selector = None
+        # Select the top 'num_features' features using SelectKBest
+        selector = SelectKBest(chi2, k=num_features)
+        X_selected = selector.fit_transform(X_scaled, y)
 
-        skf = StratifiedKFold(n_splits=4)
-
-        for k in range(100, 1001, 50):  # Check every 50 features from 100 to 1000
-            temp_selector = SelectKBest(chi2, k=k)
-            X_train_selected = temp_selector.fit_transform(X_scaled, y)
-
-            classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-            scores = cross_val_score(classifier, X_train_selected, y, cv=skf)
-            avg_score = np.mean(scores)
-
-            if avg_score > best_accuracy:
-                best_accuracy = avg_score
-                best_num_features = k
-                best_selector = temp_selector
-
-        X_best_selected = best_selector.transform(X_scaled)
-        return X_best_selected, best_selector, best_num_features, scaler
+        return X_selected, selector, num_features, scaler
     else:
         if scaler is not None and selector is not None:
+            # Scale and transform the test data using the trained scaler and selector
             X_scaled = scaler.transform(X_transformed)
-            return selector.transform(X_scaled)
+            X_selected = selector.transform(X_scaled)
+            return X_selected
         else:
             raise ValueError("Scaler and selector must be provided for test set.")
-
 
 
 @njit
 def generate_kernels(input_length, num_kernels, avg_series_length):
     # Dynamically select candidate lengths based on average series length
-    candidate_lengths =  np.array((10, 15, 20), dtype=np.int32)
+    candidate_lengths =  np.array((7, 9, 11), dtype=np.int32)
+    #candidate_lengths =  np.array((10, 15, 20), dtype=np.int32)
     #candidate_lengths = np.array((7, 9, 11), dtype=np.int32) if avg_series_length < 200 else np.array((10, 15, 20), dtype=np.int32)
     lengths = np.random.choice(candidate_lengths, num_kernels)
     weights = np.zeros(lengths.sum(), dtype=np.float64)

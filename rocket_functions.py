@@ -90,7 +90,7 @@ def apply_kernels(X, kernels):
     num_examples, _ = X.shape
     num_kernels = len(lengths)
 
-    _X = np.zeros((num_examples, num_kernels * 4), dtype = np.float64) # 4 features per kernel
+    _X = np.zeros((num_examples, num_kernels * 2), dtype = np.float64)
 
     for i in prange(num_examples):
 
