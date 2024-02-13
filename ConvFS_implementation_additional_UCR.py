@@ -8,28 +8,17 @@ import time
 
 # Define a list of dataset names
 dataset_names = [
-
-"ERing",
-"ACSF1"
-"HandMovementDirection",
-"Handwriting",
-"Heartbeat",
-"InsectWingbeat",
-"JapaneseVowels",
-"Libras",
-"LSST",
-"MotorImagery",
-"NATOPS",
-"PenDigits",
-"PEMS-SF",
-"Phoneme",
-"RacketSports",
-"SelfRegulationSCP1",
-"SelfRegulationSCP2",
-"SpokenArabicDigits",
-"StandWalkJump",
-"UWaveGestureLibrary"
-
+    "ArrowHead",
+    "WordSynonyms",
+    "FiftyWords",
+    "Car",
+    "CricketX",
+    "ShapesAll",
+    "Rock",
+    "ACSF1",
+    "ERing",
+    "Handwriting",
+    "HandMovementDirection"
 ]
 
 
