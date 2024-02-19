@@ -40,7 +40,7 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "ArrowHead"  # Change this to match your dataset name
+dataset_name = "HandMovementDirection"  # Change this to match your dataset name
 
 # Load the dataset
 X_train_raw, y_train = load_UCR_UEA_dataset("ArrowHead", split="train", return_X_y=True)
@@ -239,37 +239,69 @@ plt.savefig(f"{dataset_name}_ROC_AUC_curves.png", bbox_inches='tight')
 plt.show()
 
 def plot_roc_auc_curves_macro(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name=dataset_name):
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(20, 16))
 
-    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan', 'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine', 'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
 
+    # Add ConvFS data
+    convfs_fpr = np.array([0.,         0.01666667 ,0.01694915, 0.02272727, 0.03333333, 0.06779661,
+ 0.10169492, 0.11666667, 0.13559322, 0.15909091, 0.18333333, 0.18644068,
+ 0.25,       0.28813559, 0.3,        0.30508475, 0.3220339,  0.33898305,
+ 0.36363636, 0.37288136, 0.38636364, 0.38983051, 0.4,        0.40677966,
+ 0.40909091, 0.41666667, 0.43181818, 0.44067797, 0.45454545, 0.47727273,
+ 0.51666667, 0.53333333, 0.54237288, 0.54545455, 0.56818182, 0.59090909,
+ 0.61016949, 0.61363636, 0.68181818, 0.69491525, 0.7,        0.73333333,
+ 0.74576271, 0.75,       0.8,        0.81355932, 0.81666667, 0.83333333,
+ 0.91525424, 0.93220339, 0.94915254, 0.95454545, 0.97727273, 1.        ])
+    convfs_tpr = np.array([0.03333333, 0.03333333, 0.08333333, 0.09166667, 0.10952381, 0.14285714,
+ 0.22619048, 0.26190476, 0.27857143, 0.2952381,  0.31309524, 0.3297619,
+ 0.3547619 , 0.37142857, 0.38928571, 0.40595238, 0.42261905, 0.43928571,
+ 0.45595238, 0.47261905, 0.49761905, 0.51428571, 0.53214286, 0.54880952,
+ 0.56547619, 0.58333333, 0.59166667, 0.625,      0.63333333, 0.64166667,
+ 0.65952381, 0.67738095, 0.71071429, 0.71904762, 0.72738095, 0.73571429,
+ 0.75238095, 0.76904762, 0.77738095, 0.79404762, 0.81190476, 0.8297619,
+ 0.84642857, 0.8547619,  0.87261905, 0.88928571, 0.90714286, 0.925,
+ 0.94166667, 0.95833333, 0.975,      0.98333333, 0.99166667, 1.        ])
+    convfs_roc_auc = 0.77
+
+    plt.plot(convfs_fpr, convfs_tpr,
+             label=f'macro-average ROC curve of ConvFS (area = {convfs_roc_auc:.2f})',
+             color='black', linestyle='-', linewidth=4)  # Increase linewidth to 4 for a thicker line
+
+    # Plot the ROC curves for the other classifiers
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan',
+                    'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine',
+                    'cadetblue', 'powderblue', 'thistle', 'palevioletred'])
     for (classifier_name, color) in zip(classifiers, colors):
-        fpr = fpr_dict[classifier_name]
-        tpr = tpr_dict[classifier_name]
-        roc_auc = roc_auc_dict[classifier_name]
+        # Get fpr, tpr, and roc_auc from the dictionaries
+        fpr = fpr_dict.get(classifier_name, {})
+        tpr = tpr_dict.get(classifier_name, {})
+        roc_auc = roc_auc_dict.get(classifier_name, {})
 
+        # Calculate the macro-average ROC curve and ROC area
         all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
         mean_tpr = np.zeros_like(all_fpr)
         for i in range(n_classes):
-            mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])  # Use np.interp instead of interp
+            mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
         mean_tpr /= n_classes
 
-        fpr["macro"] = all_fpr
-        tpr["macro"] = mean_tpr
-        roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+        roc_auc["macro"] = auc(all_fpr, mean_tpr)
 
-        plt.plot(fpr["macro"], tpr["macro"],
-                 label=f'macro-average ROC curve of {classifier_name} (area = {roc_auc["macro"]:.2f})',
-                 color=color, linestyle='-', linewidth=2)
+        # Plot the macro-average ROC curve
+        plt.plot(all_fpr, mean_tpr, color=color, linestyle='-', linewidth=2,
+                 label=f'macro-average ROC curve of {classifier_name} (area = {roc_auc["macro"]:.2f})')
 
+    # Plot the line of no skill
     plt.plot([0, 1], [0, 1], 'k--', lw=2)
+
+    # Set the limits and labels
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title(f'{dataset_name} Macro-average ROC curve per classifier')
-    plt.legend(loc="lower right")
-    plt.tight_layout()
+    # Inside plot_roc_auc_curves_macro function
+    plt.xlabel('False Positive Rate', fontsize=17)
+    plt.ylabel('True Positive Rate', fontsize=17)
+    plt.title(f'{dataset_name} Macro-average ROC curve per classifier', fontsize=14)
+    plt.legend(loc="lower right", fontsize=17)
+    plt.tick_params(axis='both', labelsize=17)
 
     # Save the figure with the dataset name in the filename
     filename = f"{dataset_name}_macro_average_roc_curve.png"
