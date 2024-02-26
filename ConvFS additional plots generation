@@ -5,12 +5,14 @@ from ConvFS_functions import generate_kernels, transform_and_select_features
 from sktime.datasets import load_UCR_UEA_dataset
 import time
 from sklearn.metrics import precision_score, f1_score
-from sklearn.metrics import roc_curve, auc
 from memory_profiler import memory_usage
 from sklearn.preprocessing import label_binarize
+import matplotlib.ticker as ticker
+from sklearn.calibration import CalibratedClassifierCV
+
 
 # Define a list of dataset names
-dataset_names = ["HandMovementDirection"]
+dataset_names = ["ArrowHead"] # Change accordingly
 
 total_start_time = time.time()
 results = []
@@ -107,17 +109,6 @@ average_total_time = np.mean([
     for result in results
 ])
 
-"""# Print the results
-print(f'Average Accuracy: {average_accuracy}')
-print(f'Average Total Time (Training Transformation + Training + Test Transformation + Test): {average_total_time}')
-
-total_time = time.time() - total_start_time
-print(total_time)"""
-
-
-
-
-from sklearn.calibration import CalibratedClassifierCV
 
 # First, fit the RidgeClassifierCV
 ridge_clf = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
@@ -127,16 +118,13 @@ ridge_clf.fit(X_train_transformed, y_train)
 calibrated_clf = CalibratedClassifierCV(estimator=ridge_clf, method='sigmoid', cv='prefit')  # Note: Use `estimator`, not `base_estimator` if warning suggests
 calibrated_clf.fit(X_train_transformed, y_train)
 
-# Now you can use predict_proba with the calibrated classifier
 y_proba = calibrated_clf.predict_proba(X_test_transformed)
 
-# Proceed with ROC AUC calculation as before
 
 
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 
-# Assuming you have already defined y_test and y_train
 classes = np.unique(np.concatenate((y_train, y_test)))
 y_test_binarized = label_binarize(y_test, classes=classes)
 
@@ -183,24 +171,41 @@ else:
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 
-# Assuming predictions and y_test are defined from your ConvFS evaluation
 conf_matrix = confusion_matrix(y_test, predictions)
 
 # Plotting the confusion matrix
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Oranges')
-plt.xlabel('Predicted labels')
-plt.ylabel('True labels')
-plt.title('Confusion Matrix for ConvFS')
+plt.figure(figsize=(10, 8))  # Adjust the figure size as needed
+sns.heatmap(conf_matrix, annot=False, cmap='Oranges', fmt='g', cbar=True, linewidths=.5)
+plt.xlabel('Predicted labels', fontsize=40)
+plt.ylabel('True labels', fontsize=40)
+plt.title('ConvFS', fontsize=40)
+plt.xticks(np.arange(len(np.unique(y_test))) + 0.5, np.unique(y_test), fontsize=35)
+plt.yticks(np.arange(len(np.unique(y_test))) + 0.5, np.unique(y_test), fontsize=35, rotation=0)
 plt.show()
 
+
 # Plotting ROC AUC for each class
+plt.figure(figsize=(4, 4))
+
 for i in range(n_classes):
     plt.plot(fpr[i], tpr[i], label=f'Class {i} (AUC = {roc_auc[i]:.2f})')
 plt.plot([0, 1], [0, 1], 'k--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title(f'ROC AUC for ConvFS')
-plt.legend(loc='lower right')
+
+# Set the labels and title with a specific font size
+plt.xlabel('False Positive Rate', fontsize=17)
+plt.ylabel('True Positive Rate', fontsize=17)
+plt.title(f'ConvFS', fontsize=17)
+
+# Set the tick labels font size
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+
+# Format x-axis tick labels to have two digits after the decimal
+plt.gca().xaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+
+plt.legend(loc='lower right', fontsize=14)  # Adjust the legend font size if needed
+plt.tight_layout()
+
 plt.show()
