@@ -1,11 +1,20 @@
+####### EXAMPLE PLOTS ######
+
+
+
+
+
+
 # RELATIVE ACCURACY PLOT
 import matplotlib.pyplot as plt
 from statsmodels.nonparametric.smoothers_lowess import lowess
+import numpy as np
+import pandas as pd
 
 
 # Given accuracies for 1NN-DTW and ConvFS
-dtw_accuracies = [0.65, 0.60, 0.62, 0.62, 0.65, 0.60, 0.62, 0.70, 0.66, 0.68, 0.58, 0.42, 0.76, 0.21, 0.31, 0.39, 0.98, 0.96, 0.71, 0.39, 0.91, 0.85, 0.81, 0.87, 0.75, 0.81, 0.09]
-convfs_accuracies = [0.77, 0.75, 0.83, 0.67, 0.73, 0.67, 0.63, 0.85, 0.67, 0.69, 0.82, 0.65, 0.81, 0.68, 0.61, 0.46, 0.99, 0.99, 0.92, 0.98, 0.97, 0.99, 0.92, 0.99, 0.99, 0.95, 0.11]
+dtw_accuracies = [0.65, 0.60, 0.62, 0.62, 0.65, 0.60, 0.62, 0.70, 0.66, 0.68, 0.58, 0.42, 0.76, 0.21, 0.31, 0.39, 0.98, 0.96, 0.71, 0.39, 0.91, 0.85, 0.81, 0.87, 0.75, 0.81, 0.09, 0.23, 0.16, 0.85]
+convfs_accuracies = [0.77, 0.75, 0.83, 0.67, 0.73, 0.67, 0.63, 0.85, 0.67, 0.69, 0.82, 0.65, 0.81, 0.68, 0.61, 0.46, 0.99, 0.99, 0.92, 0.98, 0.97, 0.99, 0.92, 0.99, 0.99, 0.95, 0.11, 0.87, 0.14, 0.88]
 
 # Now plot the results
 plt.figure(figsize=(15, 10))
@@ -285,44 +294,97 @@ plt.show()
 
 
 
-import matplotlib.pyplot as plt
+
+
+# Generate synthetic time series data for hourly temperature measurements over 10 days
+np.random.seed(42)  # For reproducibility
+hours = np.arange(1, 241)  # 10 days, 24 hours each
+hourly_temperature = 10 + 7 * np.sin(2 * np.pi * hours / 24) + np.random.normal(0, 1.5, 240)  # Sinusoidal pattern with noise
+
+# Create a DataFrame for better handling of timestamps
+timestamps = pd.date_range(start="2024-01-01", periods=240, freq="H")
+df = pd.DataFrame({'Timestamp': timestamps, 'Temperature': hourly_temperature})
+
+# Plotting
+plt.figure(figsize=(14, 8))
+plt.plot(df['Timestamp'], df['Temperature'], label='Hourly Temperature', color='tab:blue', alpha=0.5)
+
+# Highlight several specific samples with their lengths
+sample_intervals = [(48, 72), (120, 144)]  # Example intervals in hours to highlight (each representing a day)
+for start, end in sample_intervals:
+    sample_period = df.iloc[start:end]
+    plt.plot(sample_period['Timestamp'], sample_period['Temperature'], label=f'Sample Period: {sample_period.iloc[0]["Timestamp"].date()}',
+             linewidth=2, marker='o')
+
+# Annotations for clarity
+for start, end in sample_intervals:
+    plt.axvline(x=df.iloc[start]['Timestamp'], color='red', linestyle='--', alpha=0.7, linewidth=1)
+    plt.axvline(x=df.iloc[end]['Timestamp'], color='red', linestyle='--', alpha=0.7, linewidth=1)
+    plt.text(df.iloc[start]['Timestamp'], min(df['Temperature']), f'{df.iloc[start]["Timestamp"].date()}', ha='right', color='red')
+    plt.text(df.iloc[end]['Timestamp'], min(df['Temperature']), f'{df.iloc[end]["Timestamp"].date()}', ha='left', color='red')
+
+plt.xlabel('Time')
+plt.ylabel('Temperature (°C)')
+plt.title('Time Series of Hourly Temperatures Over 10 Days with Highlighted Sample Periods')
+plt.legend(loc='upper right')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Re-import necessary libraries after reset
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# Data for the ConvFS algorithm
-convfs_fpr = np.array([0., 0.00819672, 0.00943396, 0.01639344, 0.01886792, 0.02459016,
-                       0.02830189, 0.03278689, 0.03773585, 0.04098361, 0.04716981, 0.04918033,
-                       0.05660377, 0.05737705, 0.06557377, 0.06603774, 0.07377049, 0.0754717,
-                       0.08196721, 0.08490566, 0.09016393, 0.09433962, 0.09836066, 0.10655738,
-                       0.11320755, 0.12295082, 0.13114754, 0.13934426, 0.14150943, 0.1509434,
-                       0.1557377, 0.18032787, 0.19672131, 0.19811321, 0.21311475, 0.22131148,
-                       0.22641509, 0.23584906, 0.24590164, 0.29245283, 0.29508197, 0.32786885,
-                       0.36065574, 0.40163934, 0.42622951, 0.50943396, 0.52830189, 0.6147541,
-                       0.70491803, 0.8852459, 0.90163934, 0.99056604, 1.])
-convfs_tpr = np.array([0.1572327, 0.18238994, 0.25968462, 0.38547079, 0.41445629, 0.45219214,
-                       0.50533224, 0.5493574, 0.56868107, 0.62528484, 0.63011576, 0.63640507,
-                       0.65572874, 0.67459666, 0.69346459, 0.70795734, 0.72682527, 0.76064169,
-                       0.766931, 0.77659284, 0.79546076, 0.80029168, 0.80658099, 0.81287029,
-                       0.81770121, 0.82399052, 0.83027983, 0.83656914, 0.84140005, 0.84623097,
-                       0.85252028, 0.8650989, 0.87138821, 0.87621912, 0.88250843, 0.88879774,
-                       0.89362866, 0.89845958, 0.90474888, 0.91924164, 0.93182025, 0.93810956,
-                       0.94439887, 0.95068818, 0.95697749, 0.95697749, 0.95697749, 0.96326679,
-                       0.9695561, 0.9695561, 0.9695561, 0.97438702, 1.])
+# Assuming the classification criteria for simplification
+cold_threshold = 10  # Below this temperature, a day is considered 'Cold'
+hot_threshold = 15 # Above this temperature, a day is considered 'Hot'
+# Temperatures between cold_threshold and hot_threshold are considered 'Average'
 
-# Load the existing plot image to overlay the new curve
-img = plt.imread(r'C:\Users\sophi\PycharmProjects\TimeSeriesClassification\Ouput Plots\Univariate Plots\ArrowHead_macro_average_roc_curve.png')
-# For now, we'll make a simple linear transformation to fit the curve into the estimated plot area.
-# We'll scale the FPR and TPR values from the range [0, 1] to [0.02, 0.98] for FPR and [0, 1] for TPR.
-convfs_fpr_adjusted = convfs_fpr * 0.9
-convfs_tpr_adjusted = convfs_tpr * 0.9
+# Generate synthetic time series data for hourly temperature measurements over 10 days
+np.random.seed(42)  # For reproducibility
+hours = np.arange(1, 241)  # 10 days, 24 hours each
+hourly_temperature = 10 + 7 * np.sin(2 * np.pi * hours / 24) + np.random.normal(0, 1.5,
+                                                                                240)  # Sinusoidal pattern with noise
 
-# Plotting the existing image
-fig, ax = plt.subplots(figsize=(12, 9))
-ax.imshow(img, extent=[0, 1, 0, 1], aspect='auto')
+# Create a DataFrame for better handling of timestamps
+timestamps = pd.date_range(start="2024-01-01", periods=240, freq="H")
+df = pd.DataFrame({'Timestamp': timestamps, 'Temperature': hourly_temperature})
 
-# Adding the ConvFS ROC curve with a thick black line, adjusted to fit within the plot
-ax.plot(convfs_fpr_adjusted, convfs_tpr_adjusted, label='macro-average ROC curve of ConvFS (area = 0.907)', color='black', linewidth=2)
+# Calculate daily average temperatures
+df['Day'] = df['Timestamp'].dt.day
+daily_avg_temp = df.groupby('Day')['Temperature'].mean()
 
-# Disable the axis
-ax.axis('off')
+# Classify each day
+day_classification = daily_avg_temp.apply(
+    lambda x: 'Cold' if x < cold_threshold else ('Hot' if x > hot_threshold else 'Average'))
 
+# Plotting the hourly temperature again
+plt.figure(figsize=(14, 8))
+plt.plot(df['Timestamp'], df['Temperature'], color='tab:gray', alpha=0.75, label='Hourly Temperature')
+
+# Annotate and color-code days based on classification
+for day, classification in day_classification.items():
+    day_start = pd.Timestamp(f"2024-01-{day:02d}")
+    day_end = day_start + pd.Timedelta(days=1)
+
+    color = 'blue' if classification == 'Cold' else ('red' if classification == 'Hot' else 'green')
+    plt.fill_betweenx(y=[min(df['Temperature']), max(df['Temperature'])],
+                      x1=day_start, x2=day_end, color=color, alpha=0.2)
+
+plt.xlabel('Time')
+plt.ylabel('Temperature (°C)')
+plt.title('Hourly Temperatures Over 10 Days with Daily Classification')
+plt.legend()
+plt.xticks(rotation=45)
+
+# Custom legend for classifications
+from matplotlib.patches import Patch
+
+legend_elements = [Patch(facecolor='blue', alpha=0.2, label='Cold'),
+                   Patch(facecolor='green', alpha=0.2, label='Average'),
+                   Patch(facecolor='red', alpha=0.2, label='Hot')]
+plt.legend(handles=legend_elements, loc='upper right')
+
+plt.tight_layout()
 plt.show()
