@@ -6,8 +6,10 @@ from sktime.datasets import load_UCR_UEA_dataset
 import time
 
 
+
 # Define a list of dataset names
-dataset_names = ["Adiac",
+dataset_names = [
+    "Adiac",
     "ArrowHead",
     "Beef",
     "BeetleFly",
