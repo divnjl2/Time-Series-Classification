@@ -59,7 +59,5 @@ The present repository is dedicated to Time Series Classification. It contains t
   For this part, we also create plots such as relative accuracy with 1NN-DTW which is a baseline algorithm for TSC, train size vs time logarithmic plots and accuracy improvement plots
   comparing ConvFS with the other classifiers that we previously use for TSC.
   
-  * We furthermore create example plots for time series such as ED and DTW distance measures to view their differences for time series data while also examples of time series and TSC
-  * so that the viewer maintains a better idea.
-  * Furthermore, for the first part, we also include Jupyter Notebooks so the viewer can easier find the outputs for the respective datasets.
+  ** We furthermore create example plots for time series such as ED and DTW distance measures to view their differences for time series data while also examples of time series and TSC so that the viewer maintains a better idea. Furthermore, for the first part, we also include Jupyter Notebooks so the viewer can easier find the outputs for the respective datasets.
 
