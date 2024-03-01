@@ -4,10 +4,10 @@
 
 The present repository is dedicated to Time Series Classification. It contains the implementations based on two scopes:
 ### 1. Systematic evaluation on various datasets from the UCR archive.
-   The datasets are split based on:
+   The datasets are organized based on:
    * Dimensions (univariate or multivarite)
-   * Length (<300, >=300, >700)
-   * Classes (<10, >=10, >=30)
+      * Length (<300, >=300, >700)
+         * Classes (<10, >=10, >=30)
      
    We conducted our experiments on various datasets for this part, but we include here 11, since based on the former categorization UCR contains this number of datasets.
    We use numerous datasets to evaluate 21 classifiers which we separate in 6 categories:
