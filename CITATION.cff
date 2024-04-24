@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Vei
+    given-names: Sofia
+title: "Analysis and Innovation in Time Series Classification Algorithms and Methods: Towards a Superior Convolutional Algorithm with Feature Selection"
+version: 2.0.4
+identifiers:
+  - type: url
+    value: https://github.com/SophiaVei/Time-Series-Classification
+date-released: 2024-03-01
