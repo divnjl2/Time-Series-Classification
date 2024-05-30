@@ -40,11 +40,11 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "ArrowHead"  # Change this to match your dataset name
+dataset_name = "ItalyPowerDemand"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("ArrowHead", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("ArrowHead", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("ItalyPowerDemand", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("ItalyPowerDemand", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -198,8 +198,8 @@ for classifier in classifiers:
 
 # Plot ROC-AUC Curves
 # Define the number of columns and rows you want
-num_cols = 4  # Fewer columns
-num_rows = 6  # More rows to accommodate all classifiers, assuming 21 classifiers
+num_cols = 3  # Fewer columns
+num_rows = 7  # More rows to accommodate all classifiers, assuming 21 classifiers
 
 # Calculate figure size dynamically based on the number of columns and rows
 # Each subplot will be of size (4, 4) for example, but you can adjust this as needed
@@ -322,30 +322,114 @@ plot_results_improved(results, "Precision", dataset_name, "peru")
 plot_results_improved(results, "F1 Score", dataset_name, "sienna")
 
 
-# Plot confusion matrices together
+# Plot confusion matrices together with larger numbers and labels
 num_classifiers = len(results["Classifier"])
-num_cols = 7
+num_cols = 4
 num_rows = -(-num_classifiers // num_cols)  # Ceiling division
 
 plt.figure(figsize=(20, 4 * num_rows))
 for i, classifier_name in enumerate(results["Classifier"]):
-    plt.subplot(num_rows, num_cols, i + 1)
-    plt.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Oranges)
-    plt.title(f'{classifier_name}')
-    plt.colorbar()
-    plt.xlabel('Predicted Labels')
-    plt.ylabel('True Labels')
+    ax = plt.subplot(num_rows, num_cols, i + 1)
+    cax = ax.imshow(results["Confusion Matrix"][i], interpolation='nearest', cmap=plt.cm.Oranges)
+    ax.set_title(f'{classifier_name}', fontsize=14)  # Adjust title fontsize here
+    cbar = plt.colorbar(cax, ax=ax)
+    cbar.ax.tick_params(labelsize=15)  # Adjust colorbar tick label size
+
+    ax.set_xlabel('Predicted Labels', fontsize=15)  # Adjust fontsize for x-axis label
+    ax.set_ylabel('True Labels', fontsize=15)  # Adjust fontsize for y-axis label
+
     tick_marks = np.arange(len(np.unique(y_train)))
-    plt.xticks(tick_marks, tick_marks, rotation=45)
-    plt.yticks(tick_marks, tick_marks)
+    ax.set_xticks(tick_marks)
+    ax.set_xticklabels(tick_marks, fontsize=14)  # Adjust fontsize for x-axis tick labels
+    ax.set_yticks(tick_marks)
+    ax.set_yticklabels(tick_marks, fontsize=14)  # Adjust fontsize for y-axis tick labels
 
 # Adjust the spacing of the subplots to make room for the suptitle
-plt.subplots_adjust(top=0.85)  # You may need to adjust this value
+plt.subplots_adjust(top=0.85)  # You may need to adjust this value depending on your figure layout
 plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
 
 # Save the figure with enough room for the suptitle
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values based on your specific layout
 plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
 
 
+def plot_roc_auc_curves_macro_with_convfs(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name="ArrowHead"):
+    plt.figure(figsize=(10, 8))
+
+    # Predefined colors, and add 'black' for the ConvFS
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan',
+                    'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine',
+                    'cadetblue', 'powderblue', 'thistle', 'palevioletred', 'black'])
+
+    for (classifier_name, color) in zip(classifiers + ['ConvFS'], colors):
+        if classifier_name == 'ConvFS':
+            # ConvFS specific data
+            fpr = {"macro": np.array([0.,         0.00819672, 0.00943396, 0.01639344, 0.01886792, 0.02459016,
+ 0.02830189, 0.03278689, 0.03773585, 0.04098361, 0.04918033, 0.05737705,
+ 0.06557377 ,0.06603774, 0.08196721, 0.09016393, 0.09433962, 0.09836066,
+ 0.11320755 ,0.1147541 , 0.12264151, 0.13207547, 0.14150943, 0.16393443,
+ 0.17213115 ,0.17924528, 0.18032787, 0.18867925, 0.19672131, 0.23584906,
+ 0.25409836 ,0.25471698, 0.28688525, 0.31967213, 0.3442623,  0.36885246,
+ 0.47540984, 0.58196721, 0.60377358, 0.62264151, 0.64150943, 0.6509434,
+ 0.68867925, 0.70491803, 0.72131148, 0.89622642, 0.90983607, 0.92622951,
+ 0.94262295, 0.99180328, 1.])}
+            tpr = {"macro": np.array([0.18238994, 0.19496855, 0.22878498, 0.40488561, 0.46768754, 0.54944855,
+ 0.58809589, 0.5943852,  0.63303254, 0.63932185, 0.65190046, 0.66447908,
+ 0.6770577,  0.68671953, 0.69300884, 0.69929815, 0.7137909 , 0.72008021,
+ 0.76355847, 0.79500501, 0.8191596 , 0.83365236, 0.84331419, 0.8496035,
+ 0.86218212, 0.86701303, 0.87330234, 0.87813326, 0.88442257, 0.88925349,
+ 0.9018321,  0.90666302, 0.91295233, 0.91924164, 0.92553095, 0.93810956,
+ 0.94439887, 0.95068818, 0.95068818, 0.95068818, 0.9555191 , 0.96035001,
+ 0.96518093, 0.96518093, 0.96518093, 0.97001185, 0.97630116, 0.98259047,
+ 0.98887977, 0.99516908, 1.])}
+            roc_auc = {"macro": 0.93}
+        else:
+            fpr = fpr_dict[classifier_name]
+            tpr = tpr_dict[classifier_name]
+            roc_auc = roc_auc_dict[classifier_name]
+
+        all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)])) if classifier_name != 'ConvFS' else fpr['macro']
+        mean_tpr = np.zeros_like(all_fpr) if classifier_name != 'ConvFS' else tpr['macro']
+        if classifier_name != 'ConvFS':
+            for i in range(n_classes):
+                mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])  # Use np.interp instead of interp
+            mean_tpr /= n_classes
+
+        fpr["macro"] = all_fpr
+        tpr["macro"] = mean_tpr
+        roc_auc["macro"] = auc(fpr["macro"], tpr["macro"]) if classifier_name != 'ConvFS' else roc_auc['macro']
+
+        plt.plot(fpr["macro"], tpr["macro"],
+                 label=f'macro-average ROC curve of {classifier_name} (area = {roc_auc["macro"]:.2f})',
+                 color=color, linestyle='-', linewidth=2)
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'{dataset_name} Macro-average ROC curve per classifier')
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
+
+# Adding 'ConvFS' manually to classifiers list for demonstration. Remove or adjust in actual code if necessary.
+classifiers = [classifier for classifier in results["Classifier"]]  # Assuming this list exists from your previous code
+n_classes = len(np.unique(y_train))  # Assuming y_train is available from earlier
+# Call the modified function
+plot_roc_auc_curves_macro_with_convfs(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes)
+
+
+
+import pandas as pd
+# Convert the results dictionary to a DataFrame
+results_df = pd.DataFrame(results)
+
+# Save the DataFrame to a CSV file
+csv_file_name = f"{dataset_name}_results.csv"
+results_df.to_csv(csv_file_name, index=False)
+
+print(f"Results have been saved to {csv_file_name}")

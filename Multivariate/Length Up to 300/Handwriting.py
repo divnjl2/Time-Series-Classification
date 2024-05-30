@@ -36,11 +36,11 @@ from aeon.classification.interval_based import (CanonicalIntervalForestClassifie
 from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
-dataset_name = "Handwriting"  # Change this to match your dataset name
+dataset_name = "EthanolConcentration"  # Change this to match your dataset name
 
 # Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("Handwriting", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("Handwriting", split="test", return_X_y=True)
+X_train_raw, y_train = load_UCR_UEA_dataset("EthanolConcentration", split="train", return_X_y=True)
+X_test_raw, y_test = load_UCR_UEA_dataset("EthanolConcentration", split="test", return_X_y=True)
 
 # Print dataset sizes and class distribution
 print("Length of each time series:", X_train_raw.iloc[0, 0].size)
@@ -327,3 +327,17 @@ plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
 plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
+
+
+
+
+
+import pandas as pd
+# Convert the results dictionary to a DataFrame
+results_df = pd.DataFrame(results)
+
+# Save the DataFrame to a CSV file
+csv_file_name = f"{dataset_name}_results.csv"
+results_df.to_csv(csv_file_name, index=False)
+
+print(f"Results have been saved to {csv_file_name}")

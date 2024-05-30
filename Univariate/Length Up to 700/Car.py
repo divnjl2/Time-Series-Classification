@@ -352,3 +352,57 @@ plt.suptitle(f"{dataset_name} Confusion Matrices", fontsize=16)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # You may need to adjust these values
 plt.savefig(f"{dataset_name}_Confusion_Matrices.png", bbox_inches='tight')
 plt.show()
+
+
+
+def plot_roc_auc_curves_macro_with_convfs(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes, dataset_name="Car"):
+    plt.figure(figsize=(10, 8))
+
+    # Predefined colors, and add 'black' for the ConvFS
+    colors = cycle(['midnightblue', 'indianred', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan',
+                    'mediumaquamarine', 'chocolate', 'palegreen', 'antiquewhite', 'tan', 'darkseagreen', 'aquamarine',
+                    'cadetblue', 'powderblue', 'thistle', 'palevioletred', 'black'])
+
+    for (classifier_name, color) in zip(classifiers + ['ConvFS'], colors):
+        if classifier_name == 'ConvFS':
+            # ConvFS specific data
+            fpr = {"macro": np.array([0., 0.0212766, 0.02439024, 0.04878049, 0.07317073, 0.42553191, 0.91489362, 1.])}
+            tpr = {"macro": np.array([0., 0.76417004, 0.80364372, 0.94838057, 0.96153846, 0.98076923, 1., 1.])}
+            roc_auc = {"macro": 0.974}
+        else:
+            fpr = fpr_dict[classifier_name]
+            tpr = tpr_dict[classifier_name]
+            roc_auc = roc_auc_dict[classifier_name]
+
+        all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)])) if classifier_name != 'ConvFS' else fpr['macro']
+        mean_tpr = np.zeros_like(all_fpr) if classifier_name != 'ConvFS' else tpr['macro']
+        if classifier_name != 'ConvFS':
+            for i in range(n_classes):
+                mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])  # Use np.interp instead of interp
+            mean_tpr /= n_classes
+
+        fpr["macro"] = all_fpr
+        tpr["macro"] = mean_tpr
+        roc_auc["macro"] = auc(fpr["macro"], tpr["macro"]) if classifier_name != 'ConvFS' else roc_auc['macro']
+
+        plt.plot(fpr["macro"], tpr["macro"],
+                 label=f'macro-average ROC curve of {classifier_name} (area = {roc_auc["macro"]:.2f})',
+                 color=color, linestyle='-', linewidth=2)
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'{dataset_name} Macro-average ROC curve per classifier')
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
+
+# Adding 'ConvFS' manually to classifiers list for demonstration. Remove or adjust in actual code if necessary.
+classifiers = [classifier for classifier in results["Classifier"]]  # Assuming this list exists from your previous code
+n_classes = len(np.unique(y_train))  # Assuming y_train is available from earlier
+# Call the modified function
+plot_roc_auc_curves_macro_with_convfs(fpr_dict, tpr_dict, roc_auc_dict, classifiers, n_classes)
