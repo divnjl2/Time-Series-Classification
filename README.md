@@ -61,4 +61,4 @@ The present repository is dedicated to Time Series Classification. It contains t
   
   ** We furthermore create example plots for time series such as ED and DTW distance measures to view their differences for time series data while also examples of time series and TSC so that the viewer maintains a better idea. Furthermore, for the first part, we also include Jupyter Notebooks so the viewer can easier find the outputs for the respective datasets.
 
-### You can find the text work here: [Sofia Vei: Analysis and Innovation in Time Series Classification Algorithms and Methods: Towards a Superior Convolutional Algorithm with Feature Selection] (https://ikee.lib.auth.gr/record/356506/files/GRI-2024-44168.pdf)
+### You can find the text work here: [Sofia Vei: Analysis and Innovation in Time Series Classification Algorithms and Methods: Towards a Superior Convolutional Algorithm with Feature Selection](https://ikee.lib.auth.gr/record/356506/files/GRI-2024-44168.pdf)
