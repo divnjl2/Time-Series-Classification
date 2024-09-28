@@ -1,0 +1,89 @@
+C:\miniconda3\envs\new-env\python.exe "C:\Users\пк\Documents\GitHub\Time-Series-Classification\Univariate\Length Greater than 700\sin1.py" 
+Обрабатываем F(2) и Лейбл
+Length of each time series: 1
+Train size: 700
+Test size: 300
+Training set class distribution: Counter({1.0: 238, -1.0: 231, 0.0: 231})
+Test set class distribution: Counter({1.0: 102, -1.0: 99, 0.0: 99})
+MLPClassifier Execution Time: 0.10s
+MLPClassifier Precision: 0.38
+MLPClassifier Accuracy: 0.40
+MLPClassifier F1 Score: 0.35
+MLPClassifier ROC-AUC Score (Macro): 0.548191652157119
+MLPClassifier ROC-AUC Score (Micro): 0.5690000000000001
+C:\miniconda3\envs\new-env\Lib\site-packages\sklearn\preprocessing\_encoders.py:868: FutureWarning: `sparse` was renamed to `sparse_output` in version 1.2 and will be removed in 1.4. `sparse_output` is ignored unless you leave `sparse` to its default value.
+  warnings.warn(
+19/19 [==============================] - 0s 667us/step
+19/19 [==============================] - 0s 667us/step
+CNNClassifier Execution Time: 67.95s
+CNNClassifier Precision: 0.28
+CNNClassifier Accuracy: 0.40
+CNNClassifier F1 Score: 0.31
+CNNClassifier ROC-AUC Score (Macro): 0.5606843973832559
+CNNClassifier ROC-AUC Score (Micro): 0.5614111111111111
+19/19 [==============================] - 0s 611us/step
+C:\miniconda3\envs\new-env\Lib\site-packages\sklearn\preprocessing\_encoders.py:868: FutureWarning: `sparse` was renamed to `sparse_output` in version 1.2 and will be removed in 1.4. `sparse_output` is ignored unless you leave `sparse` to its default value.
+  warnings.warn(
+19/19 [==============================] - 0s 833us/step
+19/19 [==============================] - 0s 778us/step
+FCNClassifier Execution Time: 171.93s
+FCNClassifier Precision: 0.35
+FCNClassifier Accuracy: 0.39
+FCNClassifier F1 Score: 0.34
+FCNClassifier ROC-AUC Score (Macro): 0.5473996624128318
+FCNClassifier ROC-AUC Score (Micro): 0.5531444444444444
+19/19 [==============================] - 0s 778us/step
+19/19 [==============================] - 0s 665us/step
+19/19 [==============================] - 0s 555us/step
+MCDCNNClassifier Execution Time: 4.71s
+MCDCNNClassifier Precision: 0.35
+MCDCNNClassifier Accuracy: 0.41
+MCDCNNClassifier F1 Score: 0.34
+MCDCNNClassifier ROC-AUC Score (Macro): 0.5370678297953686
+MCDCNNClassifier ROC-AUC Score (Micro): 0.5478000000000001
+19/19 [==============================] - 0s 611us/step
+Error evaluating classifier BOSSEnsemble: Error in BOSSEnsemble, min_window =10 is bigger than max_window =1. Try set min_window to be smaller than series length in the constructor, but the classifier may not work at all with very short series
+Error evaluating classifier ContractableBOSS: Error in ContractableBOSS, min_window =10 is bigger than max_window =1. Try set min_window to be smaller than series length in the constructor, but the classifier may not work at all with very short series
+IndividualBOSS Execution Time: 0.67s
+IndividualBOSS Precision: 0.12
+IndividualBOSS Accuracy: 0.34
+IndividualBOSS F1 Score: 0.17
+IndividualBOSS ROC-AUC Score (Macro): 0.5
+IndividualBOSS ROC-AUC Score (Micro): 0.505
+C:\miniconda3\envs\new-env\Lib\site-packages\aeon\classification\base.py:157: UserWarning: TemporalDictionaryEnsemble warning: min_window = 10 is larger than max_window = 1. min_window has been set to 1.
+  self._fit(X, y)
+Error evaluating classifier TemporalDictionaryEnsemble: division by zero
+IndividualTDE Execution Time: 1.08s
+IndividualTDE Precision: 0.36
+IndividualTDE Accuracy: 0.36
+IndividualTDE F1 Score: 0.34
+IndividualTDE ROC-AUC Score (Macro): 0.4966159990303976
+IndividualTDE ROC-AUC Score (Micro): 0.495
+Error evaluating classifier Catch22Classifier: division by zero
+FreshPRINCEClassifier Execution Time: 24.69s
+FreshPRINCEClassifier Precision: 0.35
+FreshPRINCEClassifier Accuracy: 0.35
+FreshPRINCEClassifier F1 Score: 0.35
+FreshPRINCEClassifier ROC-AUC Score (Macro): 0.5158033362598772
+FreshPRINCEClassifier ROC-AUC Score (Micro): 0.5155666666666667
+Error evaluating classifier SupervisedTimeSeriesForest: Minimum interval length must be less than half the series length.
+TimeSeriesForestClassifier Execution Time: 1.11s
+TimeSeriesForestClassifier Precision: 0.35
+TimeSeriesForestClassifier Accuracy: 0.35
+TimeSeriesForestClassifier F1 Score: 0.35
+TimeSeriesForestClassifier ROC-AUC Score (Macro): 0.5147531800297384
+TimeSeriesForestClassifier ROC-AUC Score (Micro): 0.515
+Error evaluating classifier CanonicalIntervalForestClassifier: division by zero
+Error evaluating classifier DrCIFClassifier: division by zero
+RocketClassifier Execution Time: 14.92s
+RocketClassifier Precision: 0.12
+RocketClassifier Accuracy: 0.34
+RocketClassifier F1 Score: 0.17
+RocketClassifier ROC-AUC Score (Macro): 0.5
+RocketClassifier ROC-AUC Score (Micro): 0.505
+Arsenal Execution Time: 9.58s
+Arsenal Precision: 0.12
+Arsenal Accuracy: 0.34
+Arsenal F1 Score: 0.17
+Arsenal ROC-AUC Score (Macro): 0.5
+Arsenal ROC-AUC Score (Micro): 0.505

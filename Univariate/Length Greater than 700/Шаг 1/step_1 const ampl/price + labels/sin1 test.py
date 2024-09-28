@@ -1,6 +1,3 @@
-### Dataset: Rock, Dimensions: 1, Length:	2844, Train Size: 20, Test Size: 50, Classes: 4, Type: Spectro ###
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
@@ -39,41 +36,55 @@ from aeon.classification.convolution_based import RocketClassifier, Arsenal
 
 
 
-dataset_name = "Rock"  # Change this to match your dataset name
 
-# Load the dataset
-X_train_raw, y_train = load_UCR_UEA_dataset("Rock", split="train", return_X_y=True)
-X_test_raw, y_test = load_UCR_UEA_dataset("Rock", split="test", return_X_y=True)
+
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import RandomOverSampler
+from collections import Counter
+import numpy as np
+
+# Замена имени датасета на ваш
+dataset_name = "sin1_dataset"  # Имя вашего датасета
+
+# Шаг 1: Загрузка вашего датасета
+file_path = 'combined_dataset.csv'  # Относительный путь к файлу
+df = pd.read_csv(file_path)
+
+# Столбец с амплитудами и метками
+X = df[['Amplitude']].values  # В вашем датасете используется только 'Amplitude'
+y = df['Label'].values  # Метки классов
+
+# Шаг 2: Разделение на обучающую и тестовую выборки
+X_train_raw, X_test_raw, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 # Print dataset sizes and class distribution
-print("Length of each time series:", X_train_raw.iloc[0, 0].size)
+print("Length of each time series:", X_train_raw[0].size)
 print("Train size:", len(y_train))
 print("Test size:", len(y_test))
 print("Training set class distribution:", Counter(y_train))
 print("Test set class distribution:", Counter(y_test))
 
-
 # Function to convert DataFrame to 2D numpy array
 def dataframe_to_2darray(df):
     num_samples = df.shape[0]
-    num_timesteps = len(df.iloc[0, 0])
+    num_timesteps = len(df[0])
     array_2d = np.empty((num_samples, num_timesteps))
 
     for i in range(num_samples):
-        array_2d[i, :] = df.iloc[i, 0]
+        array_2d[i, :] = df[i]
 
     return array_2d
 
+# Convert and preprocess the data (нормализация)
+scaler = MinMaxScaler()
+X_train_processed = scaler.fit_transform(X_train_raw)
+X_test_processed = scaler.transform(X_test_raw)  # Используем тот же скейлер для тестовых данных
 
-# Convert and preprocess the data
-scaler = TimeSeriesScalerMinMax()
-X_train_processed = scaler.fit_transform(dataframe_to_2darray(X_train_raw))
-X_test_processed = scaler.transform(dataframe_to_2darray(X_test_raw))  # Use the same scaler to transform test data
-
-# Flatten each time series into a one-dimensional array for classifiers that require flat features
+# Flatten each time series into a one-dimensional array
 X_train_flat = X_train_processed.reshape((X_train_processed.shape[0], -1))
 X_test_flat = X_test_processed.reshape((X_test_processed.shape[0], -1))
-
 
 # Check for class imbalance
 class_distribution = Counter(y_train)
@@ -95,14 +106,11 @@ if imbalance_ratio < imbalance_threshold:
     X_train_flat_resampled, y_train_resampled = ros.fit_resample(X_train_flat, y_train)
     resampling_done = True
 
+# Далее модель работает с `X_train_flat_resampled` и `y_train_resampled`
+
 
 # Define a list of classifiers
-classifiers = [MLPClassifier(), CNNClassifier(), FCNClassifier(), MCDCNNClassifier(),
-               BOSSEnsemble(), ContractableBOSS(), IndividualBOSS(), TemporalDictionaryEnsemble(),
-               IndividualTDE(), WEASEL(support_probabilities=True), MUSE(support_probabilities=True),
-               ShapeDTW(), KNeighborsTimeSeriesClassifier(), Catch22Classifier(), FreshPRINCEClassifier(),
-               SupervisedTimeSeriesForest(), TimeSeriesForestClassifier(),
-               CanonicalIntervalForestClassifier(), DrCIFClassifier(), RocketClassifier(), Arsenal()]
+classifiers = [MLPClassifier(), CNNClassifier(),]
 
 # Initialize lists to store results
 results = {"Classifier": [], "Execution Time": [], "Memory Usage": [], "Precision": [], "Accuracy": [],
